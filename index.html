@@ -1,0 +1,438 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The Alotion Golf Club — A Private Estate on the White River · Batesville, Arkansas</title>
+  <meta name="description" content="The Alotion Golf Club is a private estate of 270 acres on the banks of the White River in Batesville, Arkansas. Eighteen holes, par 72, est. 1897. Membership by introduction.">
+  <meta property="og:title" content="The Alotion Golf Club">
+  <meta property="og:description" content="A private estate on the banks of the White River. Eighteen holes, par 72. Batesville, Arkansas — est. 1897.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="assets/images/clubhouse.jpg">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='31' fill='%2314251A'/%3E%3Ccircle cx='32' cy='32' r='26' fill='none' stroke='%23C8A96B' stroke-width='1.6'/%3E%3Ctext x='32' y='42' text-anchor='middle' font-family='Georgia,serif' font-size='27' fill='%23C8A96B'%3EA%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="fonts/fonts.css">
+  <link rel="stylesheet" href="css/style.css">
+  <noscript>
+    <style>
+      .preloader, .progress, .hero-scroll { display: none !important; }
+      [data-hero], [data-reveal], .ht-line > span { opacity: 1 !important; transform: none !important; }
+    </style>
+  </noscript>
+  <script type="importmap">
+    { "imports": { "three": "./vendor/three.module.js" } }
+  </script>
+</head>
+<body id="top">
+
+  <!-- fixed backdrops -->
+  <div class="sky" aria-hidden="true"></div>
+  <canvas id="scene" aria-hidden="true"></canvas>
+  <div class="grain" aria-hidden="true"></div>
+  <div class="progress" aria-hidden="true"><span id="progressBar"></span></div>
+
+  <!-- preloader -->
+  <div class="preloader" id="preloader" aria-hidden="true">
+    <div class="preloader-inner">
+      <svg class="crest crest--lg" viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="30" fill="none" stroke="currentColor" stroke-width="1.4"/>
+        <circle cx="32" cy="32" r="24.5" fill="none" stroke="currentColor" stroke-width="0.7"/>
+        <text x="32" y="42" text-anchor="middle" font-family="Marcellus, Georgia, serif" font-size="26" fill="currentColor">A</text>
+      </svg>
+      <p class="preloader-name caps">The Alotion Golf Club</p>
+      <div class="preloader-bar"><span></span></div>
+      <p class="preloader-note">Batesville, Arkansas — Est. 1897</p>
+    </div>
+  </div>
+
+  <!-- navigation -->
+  <header class="nav" id="nav">
+    <a class="nav-brand" href="#top" aria-label="The Alotion Golf Club — home">
+      <svg class="crest" viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="30" fill="none" stroke="currentColor" stroke-width="1.6"/>
+        <circle cx="32" cy="32" r="24.5" fill="none" stroke="currentColor" stroke-width="0.8"/>
+        <text x="32" y="42" text-anchor="middle" font-family="Marcellus, Georgia, serif" font-size="26" fill="currentColor">A</text>
+      </svg>
+      <span class="caps">The Alotion</span>
+    </a>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="#estate">The Estate</a>
+      <a href="#course">The Course</a>
+      <a href="#membership">Membership</a>
+      <a href="#moments">Moments</a>
+      <a href="#visit">Visit</a>
+    </nav>
+    <a class="btn btn--solid btn--sm nav-cta" href="#visit">Request Invitation</a>
+    <button class="burger" id="burger" aria-label="Open menu" aria-expanded="false">
+      <span></span><span></span>
+    </button>
+  </header>
+
+  <!-- mobile menu -->
+  <div class="menu" id="menu" aria-hidden="true">
+    <nav class="menu-links" aria-label="Mobile">
+      <a href="#estate" style="--d:.05s">The Estate</a>
+      <a href="#course" style="--d:.1s">The Course</a>
+      <a href="#membership" style="--d:.15s">Membership</a>
+      <a href="#moments" style="--d:.2s">Moments</a>
+      <a href="#visit" style="--d:.25s">Visit</a>
+    </nav>
+    <p class="menu-foot caps">Batesville, Arkansas — Est. 1897</p>
+  </div>
+
+  <main>
+    <!-- ============ HERO ============ -->
+    <section class="hero" id="hero">
+      <div class="hero-inner" id="heroInner">
+        <p class="hero-overline caps" data-hero>Batesville, Arkansas · Est. 1897</p>
+        <h1 class="hero-title" aria-label="The Alotion Golf Club">
+          <span class="ht-line" aria-hidden="true"><span style="--d:1.5s">The</span></span>
+          <span class="ht-line ht-line--big" aria-hidden="true"><span style="--d:1.68s">Alotion</span></span>
+        </h1>
+        <div class="hero-sub" data-hero>
+          <span class="rule"></span>
+          <span class="caps hero-sub-word">Golf Club</span>
+          <span class="rule"></span>
+        </div>
+        <p class="hero-tag" data-hero>A private estate on the banks of the White River, where the
+          fairways run through two centuries of oak and cypress.</p>
+        <div class="hero-cta" data-hero>
+          <a class="btn btn--solid" href="#visit">Request an Invitation</a>
+          <a class="btn btn--ghost" href="#estate">Wander the Estate</a>
+        </div>
+      </div>
+      <div class="hero-meta caps" data-hero>18 Holes — Par 72 — 7,412 Yards</div>
+      <div class="hero-scroll" data-hero aria-hidden="true">
+        <span class="caps">Scroll</span>
+        <span class="hero-scroll-line"></span>
+      </div>
+    </section>
+
+    <!-- ============ MARQUEE ============ -->
+    <div class="marquee" aria-hidden="true">
+      <div class="marquee-track" id="marqueeTrack">
+        <span>Est. 1897</span><i>✦</i>
+        <span>The White River</span><i>✦</i>
+        <span>270 Acres of Ozark Woodland</span><i>✦</i>
+        <span>Private &amp; Distinguished</span><i>✦</i>
+        <span>Batesville · Arkansas</span><i>✦</i>
+      </div>
+    </div>
+
+    <!-- ============ I. THE ESTATE ============ -->
+    <section class="section section--estate" id="estate">
+      <div class="wrap">
+        <div class="section-head">
+          <p class="label" data-reveal><span>I.</span> The Estate</p>
+          <h2 class="h2" data-reveal style="--d:.08s">Two centuries of quiet,<br>kept by hand.</h2>
+        </div>
+        <div class="estate-grid">
+          <div class="estate-copy">
+            <p class="lede" data-reveal>The Alotion family took these riverbanks in 1897 with a single
+              intention — to keep them. The limestone clubhouse was raised from stone hauled up the
+              White River itself, and the first eighteen holes were laid through oak grove by grove
+              over the following decade.</p>
+            <p class="body-copy" data-reveal style="--d:.1s">The estate has never changed hands, and
+              never changed spirit. What the founders set down — long shadows, slow mornings, an iron
+              gate that opens only for members — is what remains. The Club receives its members as its
+              grandfathers did: quietly, and for good.</p>
+            <div class="stats" data-reveal style="--d:.18s">
+              <div class="stat">
+                <span class="stat-num" data-count="1897">0</span>
+                <span class="stat-cap caps">Established</span>
+              </div>
+              <div class="stat">
+                <span class="stat-num" data-count="270">0</span>
+                <span class="stat-cap caps">Acres held</span>
+              </div>
+              <div class="stat">
+                <span class="stat-num" data-count="18">0</span>
+                <span class="stat-cap caps">Holes laid</span>
+              </div>
+              <div class="stat">
+                <span class="stat-num" data-count="7412" data-format="comma">0</span>
+                <span class="stat-cap caps">Yards played</span>
+              </div>
+            </div>
+          </div>
+          <div class="estate-media">
+            <figure class="media media--tall" data-reveal>
+              <div class="media-frame">
+                <img src="assets/images/clubhouse.jpg" alt="The limestone clubhouse at dusk, windows glowing over the river" data-parallax="0.10">
+              </div>
+              <figcaption class="media-cap">The clubhouse, raised from White River stone.</figcaption>
+            </figure>
+            <figure class="media media--small" data-reveal style="--d:.15s">
+              <div class="media-frame">
+                <img src="assets/images/green.jpg" alt="A manicured putting green with a flag at first light" data-parallax="0.18">
+              </div>
+              <figcaption class="media-cap">The second green, at first light.</figcaption>
+            </figure>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ II. THE COURSE ============ -->
+    <section class="section section--course" id="course">
+      <div class="wrap">
+        <div class="section-head section-head--split">
+          <div>
+            <p class="label" data-reveal><span>II.</span> The Course</p>
+            <h2 class="h2" data-reveal style="--d:.08s">An eighteen-hole walk<br>through the Ozarks.</h2>
+          </div>
+          <p class="section-note" data-reveal style="--d:.16s">The course follows the river the way a
+            story follows a road — one good turn after another. Edmund Alotion, the Club's first
+            chairman and its only architect, drew the holes in pencil over a single long lunch, and
+            the ground has kept his lines since.</p>
+        </div>
+      </div>
+      <figure class="course-wide">
+        <div class="course-wide-frame">
+          <img src="assets/images/fairway.jpg" alt="A striped fairway curving through misty Ozark hills" data-parallax="0.12">
+        </div>
+        <figcaption class="caps course-wide-cap">The seventh fairway, running east toward the ridge</figcaption>
+      </figure>
+      <div class="wrap holes">
+        <p class="label holes-label" data-reveal>Signature holes</p>
+        <div class="holes-grid">
+          <ul class="holes-list" data-reveal>
+            <li>
+              <button class="hole is-active" type="button" data-hole="0">
+                <span class="hole-no caps">No. IV</span>
+                <span class="hole-name">The Cypress</span>
+                <span class="hole-meta">Par 5 · 588 yds</span>
+              </button>
+            </li>
+            <li>
+              <button class="hole" type="button" data-hole="1">
+                <span class="hole-no caps">No. IX</span>
+                <span class="hole-name">White River</span>
+                <span class="hole-meta">Par 3 · 214 yds</span>
+              </button>
+            </li>
+            <li>
+              <button class="hole" type="button" data-hole="2">
+                <span class="hole-no caps">No. XVI</span>
+                <span class="hole-name">Ozark Ridge</span>
+                <span class="hole-meta">Par 4 · 471 yds</span>
+              </button>
+            </li>
+            <li>
+              <button class="hole" type="button" data-hole="3">
+                <span class="hole-no caps">No. XVIII</span>
+                <span class="hole-name">The Alotion</span>
+                <span class="hole-meta">Par 5 · 612 yds</span>
+              </button>
+            </li>
+          </ul>
+          <div class="hole-card" data-reveal style="--d:.12s">
+            <div class="hole-card-media">
+              <img class="hole-img is-active" data-idx="0" src="assets/images/cypress.jpg" alt="A water hazard lined with draped cypress trees">
+              <img class="hole-img" data-idx="1" src="assets/images/green.jpg" alt="A firm green split by water">
+              <img class="hole-img" data-idx="2" src="assets/images/fairway.jpg" alt="A dogleg fairway over the north ridge">
+              <img class="hole-img" data-idx="3" src="assets/images/clubhouse.jpg" alt="The clubhouse green at the end of the fairway">
+            </div>
+            <div class="hole-card-body" id="holeCardBody">
+              <p class="hole-card-no caps" id="holeNo">No. IV</p>
+              <h3 class="hole-card-name" id="holeName">The Cypress</h3>
+              <p class="hole-card-meta" id="holeMeta">Par 5 · 588 yards</p>
+              <p class="hole-card-desc" id="holeDesc">A riverbend reach shadowed by century-old cypress.
+                The carry is honest; the view is the penalty.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ III. MEMBERSHIP ============ -->
+    <section class="section section--membership" id="membership">
+      <div class="wrap">
+        <div class="section-head section-head--center">
+          <p class="label" data-reveal><span>III.</span> Membership</p>
+          <h2 class="h2" data-reveal style="--d:.08s">Membership is extended,<br>not sold.</h2>
+          <p class="section-note section-note--center" data-reveal style="--d:.16s">The Club admits no
+            more than twelve new members each season. Admission is by the introduction of two existing
+            members, or by the invitation of the Membership Committee. We would rather you arrived
+            knowing someone here.</p>
+        </div>
+        <div class="tiers" data-reveal>
+          <article class="tier">
+            <p class="tier-roman" aria-hidden="true">I</p>
+            <p class="tier-tier caps">Patron</p>
+            <p class="tier-price">Initiation <em>$60,000</em></p>
+            <p class="tier-price">Monthly <em>$1,250</em></p>
+            <p class="tier-copy">The whole estate, the river lodge, and a standing invitation to the
+              Committee's good favour. Twenty seats, in perpetuity.</p>
+            <a class="tier-link caps" href="#visit">Request an introduction</a>
+          </article>
+          <article class="tier tier--feature">
+            <p class="tier-roman" aria-hidden="true">II</p>
+            <p class="tier-tier caps">Country</p>
+            <p class="tier-price">Initiation <em>$25,000</em></p>
+            <p class="tier-price">Monthly <em>$750</em></p>
+            <p class="tier-copy">The complete eighteen, the library, the terrace, and winter access to
+              the covered range. Most members find it is enough, and then some.</p>
+            <a class="tier-link caps" href="#visit">Request an introduction</a>
+          </article>
+          <article class="tier">
+            <p class="tier-roman" aria-hidden="true">III</p>
+            <p class="tier-tier caps">Reserve</p>
+            <p class="tier-price">Initiation <em>$8,000</em></p>
+            <p class="tier-price">Monthly <em>$350</em></p>
+            <p class="tier-copy">Play of the estate by appointment, in the season's quiet hours, from
+              the first frost to the last.</p>
+            <a class="tier-link caps" href="#visit">Request an introduction</a>
+          </article>
+        </div>
+        <p class="tiers-foot" data-reveal>Dues include greens, the clubhouse, and a seat at the annual
+          river dinner. Figures in U.S. dollars; introductions in character.</p>
+      </div>
+    </section>
+
+    <!-- ============ IV. MOMENTS ============ -->
+    <section class="section section--moments" id="moments">
+      <div class="wrap">
+        <div class="section-head">
+          <p class="label" data-reveal><span>IV.</span> Moments</p>
+          <h2 class="h2" data-reveal style="--d:.08s">The estate, in keeping.</h2>
+        </div>
+        <div class="moments-grid">
+          <figure class="moment" data-reveal>
+            <div class="moment-frame">
+              <img src="assets/images/green.jpg" alt="Morning mist over a putting green" data-parallax="0.10">
+            </div>
+            <figcaption>Morning on the second green, before the mist lifts.</figcaption>
+          </figure>
+          <figure class="moment moment--offset" data-reveal style="--d:.12s">
+            <div class="moment-frame">
+              <img src="assets/images/member.jpg" alt="A member in a tweed blazer leaning on a wooden putter" data-parallax="0.16">
+            </div>
+            <figcaption>A member of sixty-one seasons, at the stone wall.</figcaption>
+          </figure>
+          <figure class="moment" data-reveal style="--d:.08s">
+            <div class="moment-frame">
+              <img src="assets/images/cypress.jpg" alt="Cypress trees over the river at dusk" data-parallax="0.08">
+            </div>
+            <figcaption>The ninth, when the water keeps the score.</figcaption>
+          </figure>
+          <figure class="moment moment--offset" data-reveal style="--d:.16s">
+            <div class="moment-frame">
+              <img src="assets/images/detail.jpg" alt="A brass trophy on an oak shelf" data-parallax="0.14">
+            </div>
+            <figcaption>The silver, kept in the library.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ THE CHAIRMAN ============ -->
+    <section class="chairman">
+      <div class="wrap">
+        <p class="chairman-mark" aria-hidden="true">“</p>
+        <blockquote class="chairman-quote" data-reveal>A golf course is an argument with the land,
+          settled politely. We have been settling ours, one century at a time.</blockquote>
+        <p class="chairman-attr" data-reveal style="--d:.15s"><span class="caps">The Hon. Edmund Alotion</span>
+          <span class="chairman-attr-line" aria-hidden="true"></span> First Chairman, 1897</p>
+      </div>
+    </section>
+
+    <!-- ============ V. VISIT ============ -->
+    <section class="visit" id="visit">
+      <div class="visit-veil" aria-hidden="true"></div>
+      <div class="wrap visit-grid">
+        <div class="visit-copy">
+          <p class="label" data-reveal><span>V.</span> Visit</p>
+          <h2 class="h2" data-reveal style="--d:.08s">Come and walk it.</h2>
+          <p class="lede lede--dark" data-reveal style="--d:.16s">Tours are given at dawn and at dusk,
+            by appointment, from the river gate. The kettle is on by the time you reach the terrace.</p>
+          <dl class="visit-info" data-reveal style="--d:.24s">
+            <div>
+              <dt class="caps">The Estate</dt>
+              <dd>1897 River Bend Road<br>Batesville, Arkansas 72601</dd>
+            </div>
+            <div>
+              <dt class="caps">Correspondence</dt>
+              <dd><a href="tel:+18705551897">+1 (870) 555-1897</a><br><a href="mailto:estate@alotion.club">estate@alotion.club</a></dd>
+            </div>
+            <div>
+              <dt class="caps">The House</dt>
+              <dd>Gate, dawn to dusk<br>The Library, 9–5<br>River dinner, first Fridays</dd>
+            </div>
+          </dl>
+        </div>
+        <form class="visit-form" id="tourForm" novalidate>
+          <div class="visit-form-inner" data-reveal style="--d:.15s">
+            <p class="form-title caps">Request a tour</p>
+            <label class="field">
+              <span class="caps">Full name</span>
+              <input type="text" name="name" required autocomplete="name" placeholder="Eleanor Whitfield">
+            </label>
+            <label class="field">
+              <span class="caps">Email</span>
+              <input type="email" name="email" required autocomplete="email" placeholder="eleanor@example.com">
+            </label>
+            <label class="field">
+              <span class="caps">A word, if you like</span>
+              <textarea name="note" rows="3" placeholder="Who is introducing you?"></textarea>
+            </label>
+            <button class="btn btn--solid" type="submit">Request a Tour</button>
+            <p class="form-note">The membership secretary replies within a day or two, and never in a hurry.</p>
+          </div>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="footer">
+    <div class="wrap footer-top">
+      <div class="footer-brand">
+        <svg class="crest crest--lg" viewBox="0 0 64 64" aria-hidden="true">
+          <circle cx="32" cy="32" r="30" fill="none" stroke="currentColor" stroke-width="1.4"/>
+          <circle cx="32" cy="32" r="24.5" fill="none" stroke="currentColor" stroke-width="0.7"/>
+          <text x="32" y="42" text-anchor="middle" font-family="Marcellus, Georgia, serif" font-size="26" fill="currentColor">A</text>
+        </svg>
+        <p class="footer-name">The Alotion<br>Golf Club</p>
+        <p class="footer-tag">A private estate on the banks of the White River.<br>Batesville, Arkansas — Est. 1897.</p>
+      </div>
+      <div class="footer-cols">
+        <div>
+          <p class="footer-head caps">The Estate</p>
+          <ul>
+            <li><a href="#estate">The Estate</a></li>
+            <li><a href="#course">The Course</a></li>
+            <li><a href="#membership">Membership</a></li>
+            <li><a href="#moments">Moments</a></li>
+            <li><a href="#visit">Visit</a></li>
+          </ul>
+        </div>
+        <div>
+          <p class="footer-head caps">Correspondence</p>
+          <ul class="footer-plain">
+            <li>1897 River Bend Road</li>
+            <li>Batesville, Arkansas 72601</li>
+            <li><a href="tel:+18705551897">+1 (870) 555-1897</a></li>
+            <li><a href="mailto:estate@alotion.club">estate@alotion.club</a></li>
+          </ul>
+        </div>
+        <div>
+          <p class="footer-head caps">The House</p>
+          <ul class="footer-plain">
+            <li>Gate, dawn to dusk</li>
+            <li>The Library, 9–5</li>
+            <li>River dinner, first Fridays</li>
+            <li>The Committee, by invitation</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="wrap footer-bottom">
+      <p>© 1897–2026 The Alotion Golf Club. All rights reserved.</p>
+      <p class="caps footer-made">Rendered live with three.js</p>
+      <p class="footer-legal"><a href="#">Privacy</a> · <a href="#">Terms</a></p>
+    </div>
+  </footer>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
