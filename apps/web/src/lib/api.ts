@@ -79,3 +79,86 @@ export const createProposal = (b: {
 }) => call<{ id: string }>('POST', '/api/proposals', b);
 export const decideProposal = (id: string, action: 'approve' | 'reject') =>
   call<{ ok: true }>('POST', `/api/proposals/${id}/${action}`);
+
+/* ---------- Phase 2: gym and planning ---------- */
+import type { Exercise } from '@life/shared';
+
+export interface TemplateItem {
+  exerciseId: string;
+  sets: number;
+  reps: number;
+}
+export interface Template {
+  id: string;
+  name: string;
+  items: TemplateItem[];
+}
+export interface LoggedSet {
+  exerciseId: string;
+  reps: number;
+  weightKg: number;
+  rpe?: number | null;
+  pr?: string | null;
+}
+export interface Workout {
+  id: string;
+  name: string;
+  startedAt: string;
+  endedAt: string;
+  sets: LoggedSet[];
+}
+export interface PrOut {
+  exerciseId: string;
+  name: string;
+  kind: string;
+  value: number;
+  weightKg: number;
+  reps: number;
+}
+export interface SlotOut {
+  dateKey: string;
+  start: string;
+  end: string;
+  score: number;
+  reason: string;
+}
+
+export const getExercises = () =>
+  call<{ exercises: Exercise[] }>('GET', '/api/exercises').then((r) => r.exercises);
+export const getTemplates = () =>
+  call<{ templates: Template[] }>('GET', '/api/templates').then((r) => r.templates ?? []);
+export const saveTemplate = (b: { name: string; items: TemplateItem[] }) =>
+  call<{ id: string }>('POST', '/api/templates', b);
+export const deleteTemplate = (id: string) => call<{ ok: true }>('DELETE', `/api/templates/${id}`);
+export const getWorkouts = () =>
+  call<{ workouts: Workout[] }>('GET', '/api/workouts?limit=20').then((r) => r.workouts ?? []);
+export const saveWorkout = (b: {
+  name: string;
+  startedAt: string;
+  endedAt: string;
+  templateId?: string;
+  sets: LoggedSet[];
+}) => call<{ id: string; prs: PrOut[] }>('POST', '/api/workouts', b);
+export const deleteWorkout = (id: string) => call<{ ok: true }>('DELETE', `/api/workouts/${id}`);
+export const getSuggestion = (exerciseId: string) =>
+  call<{
+    last: { weightKg: number; reps: number }[];
+    suggestion: { weightKg: number; reps: number; reason: string } | null;
+  }>('GET', `/api/gym/suggest?exerciseId=${exerciseId}`);
+export const getBodyweight = () =>
+  call<{ entries: { date: string; kg: number }[] }>('GET', '/api/bodyweight').then(
+    (r) => r.entries ?? [],
+  );
+export const saveBodyweight = (date: string, kg: number) =>
+  call<{ ok: true }>('POST', '/api/bodyweight', { date, kg });
+export const planWeek = (start?: string) =>
+  call<{ created: string[]; sessions: SlotOut[] }>(
+    'POST',
+    '/api/plan/week',
+    start ? { start } : {},
+  );
+export const getSlots = (date: string) =>
+  call<{ slots: SlotOut[]; light: boolean; reason: string | null; blockedByShift: boolean }>(
+    'GET',
+    `/api/plan/slots?date=${date}`,
+  );

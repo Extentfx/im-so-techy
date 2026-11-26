@@ -8,6 +8,7 @@ import { Onboarding } from './screens/Onboarding';
 import { Placeholder } from './screens/Placeholder';
 import { Plan } from './screens/Plan';
 import { Today } from './screens/Today';
+import { Train } from './screens/Train';
 
 export function App() {
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -23,8 +24,12 @@ export function App() {
           await putProfile(local).catch(() => undefined);
           setProfile(local);
         } else {
-          setProfile(p);
-          saveLocalProfile(p);
+          const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+          const fixed =
+            p.completed && p.timezone === 'UTC' && tz && tz !== 'UTC' ? { ...p, timezone: tz } : p;
+          if (fixed !== p) void putProfile(fixed).catch(() => undefined);
+          setProfile(fixed);
+          saveLocalProfile(fixed);
         }
       },
       () => setProfile(loadLocalProfile()),
@@ -32,6 +37,8 @@ export function App() {
   }, []);
 
   const save = (p: Profile) => {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (p.completed && p.timezone === 'UTC' && tz) p = { ...p, timezone: tz };
     saveLocalProfile(p);
     setProfile(p);
     void putProfile(p).catch(() => undefined);
@@ -60,6 +67,8 @@ export function App() {
           <Today profile={profile} onEditSetup={() => setEditing(true)} />
         ) : tab === 'plan' ? (
           <Plan />
+        ) : tab === 'train' ? (
+          <Train profile={profile} />
         ) : (
           <Placeholder tab={tab} />
         )}

@@ -20,6 +20,10 @@ export interface HealthResponse {
 }
 
 export * from './profile';
+export * from './tz';
+export * from './exercises';
+export * from './gym';
+export * from './scheduler';
 
 export const TABS = [
   'today',

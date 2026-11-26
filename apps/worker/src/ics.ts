@@ -1,3 +1,7 @@
+import { zonedToUtc } from '@life/shared';
+
+export { zonedToUtc };
+
 /**
  * Small, dependency-free iCalendar (ICS) reader.
  * Handles folded lines, UTC / TZID / floating times, all-day events, DURATION,
@@ -23,18 +27,6 @@ export interface ParseResult {
 
 const DAY = 86_400_000;
 const MAX_OCCURRENCES = 400;
-
-const WINDOWS_TZ: Record<string, string> = {
-  'Eastern Standard Time': 'America/New_York',
-  'Central Standard Time': 'America/Chicago',
-  'Mountain Standard Time': 'America/Denver',
-  'Pacific Standard Time': 'America/Los_Angeles',
-  'GMT Standard Time': 'Europe/London',
-  'W. Europe Standard Time': 'Europe/Berlin',
-  'Central Europe Standard Time': 'Europe/Budapest',
-  'AUS Eastern Standard Time': 'Australia/Sydney',
-  UTC: 'UTC',
-};
 
 interface Prop {
   name: string;
@@ -64,44 +56,6 @@ export function parseLine(line: string): Prop | null {
     if (eq > 0) params[p.slice(0, eq).toUpperCase()] = p.slice(eq + 1).replace(/^"|"$/g, '');
   }
   return { name: name!.toUpperCase(), params, value: line.slice(colon + 1) };
-}
-
-/** Offset (ms) of a time zone from UTC at the given instant. */
-function tzOffset(ts: number, tz: string): number {
-  const f = new Intl.DateTimeFormat('en-US', {
-    timeZone: tz,
-    hourCycle: 'h23',
-    year: 'numeric',
-    month: 'numeric',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: 'numeric',
-    second: 'numeric',
-  });
-  const p = Object.fromEntries(f.formatToParts(new Date(ts)).map((x) => [x.type, Number(x.value)]));
-  const asUtc = Date.UTC(p.year!, p.month! - 1, p.day!, p.hour!, p.minute!, p.second!);
-  return asUtc - Math.floor(ts / 1000) * 1000;
-}
-
-/** Convert wall-clock time in `tz` to a UTC timestamp. Unknown zones fall back to UTC. */
-export function zonedToUtc(
-  y: number,
-  mo: number,
-  d: number,
-  h: number,
-  mi: number,
-  s: number,
-  tz: string | undefined,
-): number {
-  const guess = Date.UTC(y, mo - 1, d, h, mi, s);
-  if (!tz) return guess;
-  try {
-    const zone = WINDOWS_TZ[tz] ?? tz;
-    const first = guess - tzOffset(guess, zone);
-    return guess - tzOffset(first, zone);
-  } catch {
-    return guess;
-  }
 }
 
 interface Local {

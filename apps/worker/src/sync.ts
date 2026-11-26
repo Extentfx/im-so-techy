@@ -3,6 +3,7 @@ import { decrypt } from './crypto';
 import { diffEvents, type Comparable } from './diff';
 import type { Env } from './env';
 import { parseIcs } from './ics';
+import { replan } from './plan';
 import { normalizeFeedUrl } from './urlcheck';
 
 const DAY = 86_400_000;
@@ -150,6 +151,8 @@ export async function syncSource(
       ).bind(isoNoMs(now), src.id),
     );
     await env.DB.batch(stmts);
+    // Events or shifts changed: keep proposed workouts consistent with the new calendar.
+    if (changes.length) await replan(env, now);
     return { events: rows.length, changes: changes.length, warnings };
   } catch (err) {
     const msg = err instanceof Error ? err.message.slice(0, 200) : 'Sync failed';

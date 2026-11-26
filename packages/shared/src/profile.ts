@@ -1,3 +1,5 @@
+import { isValidTz } from './tz';
+
 export type Units = 'lb' | 'kg';
 export type CalendarProvider = 'google' | 'outlook' | 'apple' | 'ics';
 export type LunchFor = 'me' | 'kids' | 'both' | 'none';
@@ -28,6 +30,8 @@ export interface Profile {
   /** No workout on a day with a work shift longer than this many hours. */
   noTrainOnShiftOverHours: number;
   trainTime: TrainTime;
+  /** IANA zone, set from the browser when onboarding finishes. */
+  timezone: string;
 }
 
 export const CALENDARS: readonly CalendarProvider[] = ['google', 'outlook', 'apple', 'ics'];
@@ -71,6 +75,7 @@ export const DEFAULT_PROFILE: Profile = {
   noTrainWithinBedtimeHours: 2,
   noTrainOnShiftOverHours: 10,
   trainTime: 'auto',
+  timezone: 'UTC',
 };
 
 const oneOf = <T extends string>(v: unknown, allowed: readonly T[], fallback: T): T =>
@@ -105,5 +110,6 @@ export function sanitizeProfile(raw: unknown): Profile {
     noTrainWithinBedtimeHours: num(r.noTrainWithinBedtimeHours, 0, 6, d.noTrainWithinBedtimeHours),
     noTrainOnShiftOverHours: num(r.noTrainOnShiftOverHours, 4, 24, d.noTrainOnShiftOverHours),
     trainTime: oneOf(r.trainTime, TRAIN_TIMES, d.trainTime),
+    timezone: typeof r.timezone === 'string' && isValidTz(r.timezone) ? r.timezone : d.timezone,
   };
 }
