@@ -3,6 +3,7 @@ import { decrypt } from './crypto';
 import { diffEvents, type Comparable } from './diff';
 import type { Env } from './env';
 import { parseIcs } from './ics';
+import { notify } from './admin';
 import { replan } from './plan';
 import { normalizeFeedUrl } from './urlcheck';
 
@@ -82,6 +83,7 @@ export async function syncSource(
   src: SourceRow,
   now = Date.now(),
   getFeed: FeedFetcher = fetchFeed,
+  fetchImpl: typeof fetch = (i, init) => fetch(i, init),
 ): Promise<SyncResult> {
   try {
     const url = normalizeFeedUrl(await decrypt(src.url_enc, env.TOKEN_KEY));
@@ -152,7 +154,16 @@ export async function syncSource(
     );
     await env.DB.batch(stmts);
     // Events or shifts changed: keep proposed workouts consistent with the new calendar.
-    if (changes.length) await replan(env, now);
+    if (changes.length) {
+      await replan(env, now);
+      const first = changes[0]!;
+      await notify(
+        env,
+        fetchImpl,
+        'Your schedule changed',
+        `${src.name}: ${first.type} ${first.title}${changes.length > 1 ? ` and ${changes.length - 1} more` : ''}`,
+      ).catch(() => false);
+    }
     return { events: rows.length, changes: changes.length, warnings };
   } catch (err) {
     const msg = err instanceof Error ? err.message.slice(0, 200) : 'Sync failed';

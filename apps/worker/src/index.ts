@@ -1,5 +1,6 @@
 import type { HealthResponse } from '@life/shared';
 import { resolveUser } from './auth';
+import { runNightlyBackup, runReminders, familyView } from './admin';
 import { handleApi } from './api';
 import type { Env } from './env';
 import { allHandlers } from './modules';
@@ -10,6 +11,11 @@ export type { Env };
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
+    // The one public route: a read-only family view, protected by its own unguessable expiring token.
+    const early = new URL(request.url);
+    if (early.pathname === '/api/family/view' && request.method === 'GET')
+      return familyView(request, env, Date.now());
+
     // Defense in depth: even if a route is misconfigured outside Access, we fail closed here.
     const user = await resolveUser(request, env);
     if (!user) return new Response(null, { status: 401 });
@@ -40,9 +46,14 @@ export default {
     ctx.waitUntil(
       (async () => {
         await syncAll(env);
-        await runRoutines({ env, now: Date.now, fetchImpl: (i, init) => fetch(i, init) }).catch(
-          () => 0,
-        );
+        const c = {
+          env,
+          now: Date.now,
+          fetchImpl: (i: RequestInfo | URL, init?: RequestInit) => fetch(i, init),
+        };
+        await runRoutines(c).catch(() => 0);
+        await runReminders(c).catch(() => 0);
+        await runNightlyBackup(env, Date.now()).catch(() => false);
       })(),
     );
   },

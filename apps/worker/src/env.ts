@@ -7,6 +7,10 @@ export interface Env {
   ALLOWED_SERVICE_TOKENS?: string;
   /** 32 random bytes, base64. `openssl rand -base64 32` then `wrangler secret put TOKEN_KEY`. */
   TOKEN_KEY: string;
+  /** Optional separate key for encrypted backups (defaults to TOKEN_KEY). */
+  BACKUP_KEY?: string;
+  /** Optional R2 bucket for nightly encrypted backups. */
+  BACKUPS?: R2Bucket;
   /** Optional. Enables Claude for email reading and chat. Stored as a Worker secret, never in the browser. */
   ANTHROPIC_API_KEY?: string;
   /** Optional model override for chat (default: the small model). */

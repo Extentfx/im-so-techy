@@ -122,7 +122,7 @@ export async function handleApi(
       .run();
     await audit(env, 'source.add', `${kind}:${name}@${row.host}`, 'ok');
     try {
-      const r = await syncSource(env, row, now(), getFeed);
+      const r = await syncSource(env, row, now(), getFeed, fetchImpl);
       const fresh = await env.DB.prepare(
         'SELECT id, name, kind, url_enc, host, last_synced_at, last_error FROM calendar_sources WHERE id = ?',
       )
@@ -155,7 +155,7 @@ export async function handleApi(
 
     if (m[2] && method === 'POST') {
       try {
-        return json({ sync: await syncSource(env, src, now(), getFeed) });
+        return json({ sync: await syncSource(env, src, now(), getFeed, fetchImpl) });
       } catch (e) {
         return err(502, e instanceof Error ? e.message : 'sync_failed');
       }

@@ -9,13 +9,20 @@ import { Fuel } from './screens/Fuel';
 import { Home } from './screens/Home';
 import { Inbox } from './screens/Inbox';
 import { Onboarding } from './screens/Onboarding';
-import { Placeholder } from './screens/Placeholder';
+import { Family } from './screens/Family';
 import { Plan } from './screens/Plan';
+import { Settings } from './screens/Settings';
 import { Sleep } from './screens/Sleep';
 import { Today } from './screens/Today';
 import { Train } from './screens/Train';
 
 export function App() {
+  // The read-only family page needs no profile, no login and no backdrop.
+  if (window.location.pathname === '/family') return <Family />;
+  return <Dashboard />;
+}
+
+function Dashboard() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [editing, setEditing] = useState(false);
   const [tab, setTab] = useState<TabId>('today');
@@ -85,7 +92,7 @@ export function App() {
         ) : tab === 'chat' ? (
           <Chat />
         ) : (
-          <Placeholder tab={tab} />
+          <Settings profile={profile} onSave={save} onRedoSetup={() => setEditing(true)} />
         )}
       </main>
       <RadialNav active={tab} onSelect={setTab} />
