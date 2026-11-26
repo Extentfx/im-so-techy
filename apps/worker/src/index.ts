@@ -3,6 +3,7 @@ import { resolveUser } from './auth';
 import { handleApi } from './api';
 import type { Env } from './env';
 import { allHandlers } from './modules';
+import { runRoutines } from './home';
 import { syncAll } from './sync';
 
 export type { Env };
@@ -36,6 +37,13 @@ export default {
 
   /** Every 15 minutes: refresh all calendar feeds and record shift changes. */
   async scheduled(_event: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
-    ctx.waitUntil(syncAll(env));
+    ctx.waitUntil(
+      (async () => {
+        await syncAll(env);
+        await runRoutines({ env, now: Date.now, fetchImpl: (i, init) => fetch(i, init) }).catch(
+          () => 0,
+        );
+      })(),
+    );
   },
 } satisfies ExportedHandler<Env>;

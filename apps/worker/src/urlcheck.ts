@@ -44,3 +44,21 @@ export function isSameOrigin(req: Request): boolean {
     return false;
   }
 }
+
+/**
+ * Home Assistant address. Normally it must be a public https URL (a Cloudflare Tunnel or Tailscale
+ * Funnel address). During local development (`allowPrivate`) plain http on your own network is allowed.
+ */
+export function normalizeHaUrl(input: string, allowPrivate: boolean): URL | null {
+  const raw = input.trim();
+  if (raw.length > 500) return null;
+  let u: URL;
+  try {
+    u = new URL(raw);
+  } catch {
+    return null;
+  }
+  if (u.username || u.password || !/^https?:$/.test(u.protocol)) return null;
+  if (allowPrivate) return u;
+  return u.protocol === 'https:' && isPublicHost(u.hostname) ? u : null;
+}

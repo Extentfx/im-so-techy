@@ -6,6 +6,7 @@ import { getProfile, putProfile } from './lib/api';
 import { loadLocalProfile, saveLocalProfile } from './lib/profile';
 import { Chat } from './screens/Chat';
 import { Fuel } from './screens/Fuel';
+import { Home } from './screens/Home';
 import { Inbox } from './screens/Inbox';
 import { Onboarding } from './screens/Onboarding';
 import { Placeholder } from './screens/Placeholder';
@@ -79,6 +80,8 @@ export function App() {
           <Sleep profile={profile} />
         ) : tab === 'inbox' ? (
           <Inbox />
+        ) : tab === 'home' ? (
+          <Home />
         ) : tab === 'chat' ? (
           <Chat />
         ) : (

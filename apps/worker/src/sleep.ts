@@ -1,4 +1,4 @@
-import { addDaysKey, localDateKey, suggestBedtime, type Commitment } from '@life/shared';
+import { localDateKey } from '@life/shared';
 import {
   audit,
   DATE,
@@ -12,9 +12,8 @@ import {
   type Handler,
 } from './http';
 import { loadProfile } from './foundation';
-import { loadBusy } from './plan';
+import { suggestionFor } from './bedtime';
 import { recentNights, recoveryMode } from './recovery';
-import { atLocal } from '@life/shared';
 
 const MIN_MINUTES = 60;
 const MAX_MINUTES = 16 * 60;
@@ -40,37 +39,9 @@ export const sleep: Handler = async (c) => {
   if (path === '/api/sleep' && method === 'GET') {
     const profile = await loadProfile(c);
     const now = c.now();
-    const today = localDateKey(now, profile.timezone);
     const nights = await recentNights(env, profile.timezone, now);
     const rec = await recoveryMode(env, now);
-    const tomorrow = addDaysKey(today, 1);
-    const busy = await loadBusy(
-      env,
-      atLocal(tomorrow, '00:00', profile.timezone),
-      atLocal(addDaysKey(tomorrow, 1), '00:00', profile.timezone),
-    );
-    const { results } = await env.DB.prepare(
-      'SELECT title, start FROM events WHERE all_day = 0 AND start >= ? AND start < ? ORDER BY start LIMIT 1',
-    )
-      .bind(
-        isoNoMs(atLocal(tomorrow, '00:00', profile.timezone)),
-        isoNoMs(atLocal(addDaysKey(tomorrow, 1), '00:00', profile.timezone)),
-      )
-      .all<{ title: string; start: string }>();
-    const dash = await env.DB.prepare(
-      'SELECT title, start FROM dashboard_events WHERE all_day = 0 AND start >= ? AND start < ? ORDER BY start LIMIT 1',
-    )
-      .bind(
-        isoNoMs(atLocal(tomorrow, '00:00', profile.timezone)),
-        isoNoMs(atLocal(addDaysKey(tomorrow, 1), '00:00', profile.timezone)),
-      )
-      .all<{ title: string; start: string }>();
-    const commitments: Commitment[] = [...(results ?? []), ...(dash.results ?? [])].map((r) => ({
-      title: r.title,
-      start: Date.parse(r.start),
-    }));
-    void busy;
-    const s = suggestBedtime(today, commitments, profile);
+    const s = await suggestionFor(env, now);
     return json({
       nights,
       targetHours: profile.sleepHours,
