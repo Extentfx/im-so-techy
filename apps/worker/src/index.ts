@@ -2,6 +2,7 @@ import type { HealthResponse } from '@life/shared';
 import { resolveUser } from './auth';
 import { handleApi } from './api';
 import type { Env } from './env';
+import { allHandlers } from './modules';
 import { syncAll } from './sync';
 
 export type { Env };
@@ -20,7 +21,7 @@ export default {
       });
     }
     try {
-      return await handleApi(request, env);
+      return await handleApi(request, env, undefined, undefined, undefined, allHandlers);
     } catch {
       // Never leak internals (or feed URLs) in error bodies.
       return new Response(JSON.stringify({ error: 'server_error' }), {

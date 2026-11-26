@@ -1,26 +1,18 @@
 import type { CalEvent, CalendarSource, ShiftChange, SourceKind } from '@life/shared';
 import { encrypt } from './crypto';
+import { dashToEvent, foundation, type DashRow } from './foundation';
+import { audit as auditLog, err, json, readJson, type Ctx, type Handler } from './http';
 import type { Env } from './env';
 import { syncSource, type FeedFetcher, type SourceRow } from './sync';
+import { ISO } from './http';
 import { isSameOrigin, normalizeFeedUrl } from './urlcheck';
-
-const json = (body: unknown, status = 200): Response =>
-  new Response(JSON.stringify(body), {
-    status,
-    headers: { 'content-type': 'application/json', 'cache-control': 'no-store' },
-  });
-const err = (status: number, error: string) => json({ error }, status);
 
 const KINDS: readonly SourceKind[] = ['work', 'school', 'family'];
 const MAX_SOURCES = 10;
 const MAX_RANGE_MS = 62 * 86_400_000;
-const ISO = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/;
 
-async function audit(env: Env, action: string, target: string, result: string): Promise<void> {
-  await env.DB.prepare('INSERT INTO audit_log (source, action, target, result) VALUES (?,?,?,?)')
-    .bind('user', action, target, result)
-    .run();
-}
+const audit = (env: Env, action: string, target: string, result: string) =>
+  auditLog(env, 'user', action, target, result);
 
 interface SourceDb extends SourceRow {
   last_error: string | null;
@@ -34,29 +26,19 @@ const toSource = (r: SourceDb): CalendarSource => ({
   lastError: r.last_error,
 });
 
-async function readJson(req: Request): Promise<Record<string, unknown> | null> {
-  const text = await req.text();
-  if (text.length > 4000) return null;
-  try {
-    const v = JSON.parse(text);
-    return typeof v === 'object' && v !== null && !Array.isArray(v)
-      ? (v as Record<string, unknown>)
-      : null;
-  } catch {
-    return null;
-  }
-}
-
 /** All /api routes below the auth gate. The caller has already verified the Access token. */
 export async function handleApi(
   req: Request,
   env: Env,
   getFeed?: FeedFetcher,
   now: () => number = Date.now,
+  fetchImpl: typeof fetch = (i, init) => fetch(i, init),
+  extra: Handler[] = [],
 ): Promise<Response> {
   const url = new URL(req.url);
   const path = url.pathname;
   const method = req.method;
+  const ctx: Ctx = { req, env, url, path, method, now, getFeed, fetchImpl };
 
   if (method !== 'GET' && method !== 'HEAD' && !isSameOrigin(req)) return err(403, 'cross_origin');
 
@@ -91,7 +73,15 @@ export async function handleApi(
       location: r.location,
       kind: r.kind,
     }));
-    return json({ events });
+    const dash = await env.DB.prepare(
+      'SELECT id, title, start, end, all_day, location FROM dashboard_events WHERE start < ? AND end > ? ORDER BY start LIMIT 500',
+    )
+      .bind(to, from)
+      .all<DashRow>();
+    const all = [...events, ...(dash.results ?? []).map(dashToEvent)].sort((a, b) =>
+      a.start.localeCompare(b.start),
+    );
+    return json({ events: all });
   }
 
   if (path === '/api/sources' && method === 'GET') {
@@ -213,5 +203,9 @@ export async function handleApi(
     return json({ ok: true });
   }
 
+  for (const h of [foundation, ...extra]) {
+    const r = await h(ctx);
+    if (r) return r;
+  }
   return err(404, 'not_found');
 }

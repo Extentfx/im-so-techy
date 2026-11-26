@@ -9,6 +9,8 @@ const PHASE: Record<TabId, string> = {
   sleep: '4',
   home: '7',
   inbox: '5',
+  chat: '6',
+  settings: '8',
 };
 
 export function Placeholder({ tab }: { tab: TabId }) {

@@ -20,6 +20,8 @@ const LABEL: Record<TabId, string> = {
   sleep: 'Sleep',
   home: 'Home',
   inbox: 'Inbox',
+  chat: 'Chat',
+  settings: 'You',
 };
 
 const ICON: Record<TabId, ReactNode> = {
@@ -35,6 +37,8 @@ const ICON: Record<TabId, ReactNode> = {
   sleep: <path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z" />,
   home: <path d="M4 11l8-7 8 7v9H4zM10 20v-6h4v6" />,
   inbox: <path d="M3 13l3-8h12l3 8v6H3zM3 13h5l1 3h6l1-3h5" />,
+  chat: <path d="M4 5h16v11H9l-5 4zM8 9h8M8 12h5" />,
+  settings: <path d="M4 7h10M18 7h2M4 17h2M10 17h10M14 4v6M6 14v6" />,
 };
 
 /** Dial geometry in px, measured from the bottom-right screen corner. */

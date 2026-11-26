@@ -1,29 +1,52 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { Profile, TabId } from '@life/shared';
 import { Backdrop } from './components/Backdrop';
-import { loadProfile, saveProfile } from './lib/profile';
 import { RadialNav } from './components/RadialNav';
+import { getProfile, putProfile } from './lib/api';
+import { loadLocalProfile, saveLocalProfile } from './lib/profile';
 import { Onboarding } from './screens/Onboarding';
 import { Placeholder } from './screens/Placeholder';
 import { Plan } from './screens/Plan';
 import { Today } from './screens/Today';
 
 export function App() {
-  const [profile, setProfile] = useState<Profile>(loadProfile);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [editing, setEditing] = useState(false);
   const [tab, setTab] = useState<TabId>('today');
 
-  const done = (p: Profile) => {
-    saveProfile(p);
+  // The server is the source of truth. A browser copy is the fallback, and seeds the server once.
+  useEffect(() => {
+    getProfile().then(
+      async ({ profile: p, exists }) => {
+        const local = loadLocalProfile();
+        if (!exists && local.completed) {
+          await putProfile(local).catch(() => undefined);
+          setProfile(local);
+        } else {
+          setProfile(p);
+          saveLocalProfile(p);
+        }
+      },
+      () => setProfile(loadLocalProfile()),
+    );
+  }, []);
+
+  const save = (p: Profile) => {
+    saveLocalProfile(p);
     setProfile(p);
-    setEditing(false);
+    void putProfile(p).catch(() => undefined);
   };
+
+  if (!profile) return null;
 
   if (!profile.completed || editing) {
     return (
       <Onboarding
         initial={profile}
-        onDone={done}
+        onDone={(p) => {
+          save(p);
+          setEditing(false);
+        }}
         onCancel={profile.completed ? () => setEditing(false) : undefined}
       />
     );

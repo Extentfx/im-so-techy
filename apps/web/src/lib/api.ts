@@ -1,4 +1,4 @@
-import type { CalEvent, CalendarSource, ShiftChange, SourceKind } from '@life/shared';
+import type { CalEvent, CalendarSource, Profile, ShiftChange, SourceKind } from '@life/shared';
 
 export class ApiError extends Error {
   constructor(
@@ -24,7 +24,7 @@ export const friendly = (e: unknown): string => {
   return FRIENDLY[e.code] ?? e.code.replace(/_/g, ' ');
 };
 
-async function call<T>(method: string, path: string, body?: unknown): Promise<T> {
+export async function call<T>(method: string, path: string, body?: unknown): Promise<T> {
   let res: Response;
   try {
     res = await fetch(path, {
@@ -56,3 +56,26 @@ export const removeSource = (id: string) => call<{ ok: true }>('DELETE', `/api/s
 export const getAlerts = () =>
   call<{ alerts: ShiftChange[] }>('GET', '/api/alerts').then((r) => r.alerts);
 export const ackAlert = (id: number) => call<{ ok: true }>('POST', `/api/alerts/${id}/ack`);
+
+export const getProfile = () => call<{ profile: Profile; exists: boolean }>('GET', '/api/profile');
+export const putProfile = (p: Profile) => call<{ profile: Profile }>('PUT', '/api/profile', p);
+
+export interface Proposal {
+  id: string;
+  source: 'user' | 'chat' | 'scheduler' | 'email';
+  kind: string;
+  summary: string;
+  payload: { title: string; start: string; end: string; location?: string | null };
+  status: string;
+  createdAt: string;
+}
+export const getProposals = () =>
+  call<{ proposals: Proposal[] }>('GET', '/api/proposals').then((r) => r.proposals ?? []);
+export const createProposal = (b: {
+  source?: string;
+  kind: 'calendar_event';
+  summary: string;
+  payload: Proposal['payload'];
+}) => call<{ id: string }>('POST', '/api/proposals', b);
+export const decideProposal = (id: string, action: 'approve' | 'reject') =>
+  call<{ ok: true }>('POST', `/api/proposals/${id}/${action}`);
