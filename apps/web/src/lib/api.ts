@@ -162,3 +162,69 @@ export const getSlots = (date: string) =>
     'GET',
     `/api/plan/slots?date=${date}`,
   );
+
+/* ---------- Phase 3: food and lunch ---------- */
+export type Slot = 'breakfast' | 'lunch' | 'dinner' | 'snack';
+export interface Macros {
+  kcal: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+}
+export interface LogEntry extends Macros {
+  id: string;
+  slot: Slot;
+  name: string;
+  qty: number;
+  source: string;
+}
+export interface FoodHit extends Macros {
+  name: string;
+  brand: string | null;
+  serving: string;
+  barcode?: string | null;
+  source?: string;
+}
+export interface DayLog {
+  entries: LogEntry[];
+  totals: Macros;
+  targets: { kcal: number | null; protein: number | null };
+}
+export interface LunchToday {
+  enabled: boolean;
+  rule: (Macros & { name: string; weekday: number }) | null;
+  status: 'ate' | 'skipped' | 'other' | null;
+  logsCalories?: boolean;
+}
+export const getDayLog = (date: string) => call<DayLog>('GET', `/api/food/log?date=${date}`);
+export const addLog = (
+  b: { date: string; slot: Slot; name: string; qty?: number; source?: string } & Macros,
+) => call<{ id: string }>('POST', '/api/food/log', b);
+export const deleteLog = (id: string) => call<{ ok: true }>('DELETE', `/api/food/log/${id}`);
+export const searchFood = (q: string) =>
+  call<{ saved: FoodHit[]; results: FoodHit[]; sources: { openfoodfacts: string; usda: string } }>(
+    'GET',
+    `/api/food/search?q=${encodeURIComponent(q)}`,
+  );
+export const barcodeLookup = (code: string) =>
+  call<{ food: FoodHit }>('GET', `/api/food/barcode/${code}`);
+export const saveFood = (b: Macros & { name: string; serving?: string; barcode?: string | null }) =>
+  call<{ id: string }>('POST', '/api/foods', b);
+export const getMeals = () =>
+  call<{ meals: { id: string; name: string; items: unknown[] }[] }>('GET', '/api/meals').then(
+    (r) => r.meals ?? [],
+  );
+export const saveMeal = (name: string, items: (Macros & { name: string; qty: number })[]) =>
+  call<{ id: string }>('POST', '/api/meals', { name, items });
+export const logMeal = (id: string, date: string, slot: Slot) =>
+  call<{ count: number }>('POST', `/api/meals/${id}/log`, { date, slot });
+export const getLunch = (date: string) => call<LunchToday>('GET', `/api/lunch/today?date=${date}`);
+export const confirmLunch = (
+  b: { date: string; action: 'ate' | 'skipped' | 'other'; name?: string } & Partial<Macros>,
+) => call<{ ok: true }>('POST', '/api/lunch/confirm', b);
+export const getLunchRules = () =>
+  call<{ rules: (Macros & { weekday: number; name: string })[] }>('GET', '/api/lunch/rules').then(
+    (r) => r.rules ?? [],
+  );
+export const putLunchRules = (rules: (Macros & { weekday: number; name: string })[]) =>
+  call<{ ok: true }>('PUT', '/api/lunch/rules', { rules });

@@ -4,6 +4,7 @@ import { Backdrop } from './components/Backdrop';
 import { RadialNav } from './components/RadialNav';
 import { getProfile, putProfile } from './lib/api';
 import { loadLocalProfile, saveLocalProfile } from './lib/profile';
+import { Fuel } from './screens/Fuel';
 import { Onboarding } from './screens/Onboarding';
 import { Placeholder } from './screens/Placeholder';
 import { Plan } from './screens/Plan';
@@ -69,6 +70,8 @@ export function App() {
           <Plan />
         ) : tab === 'train' ? (
           <Train profile={profile} />
+        ) : tab === 'fuel' ? (
+          <Fuel profile={profile} />
         ) : (
           <Placeholder tab={tab} />
         )}
