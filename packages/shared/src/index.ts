@@ -42,3 +42,6 @@ export interface Profile {
   wakeTime: string; // HH:MM
   homeSystems: HomeSystem[];
 }
+
+export const TABS = ['today', 'plan', 'train', 'fuel', 'sleep', 'home', 'inbox'] as const;
+export type TabId = (typeof TABS)[number];
