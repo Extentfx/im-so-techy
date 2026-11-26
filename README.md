@@ -2,7 +2,7 @@
 
 A private, calm dashboard that plans your week around work, school and family, and tracks gym, food and sleep. See `CLAUDE.md` for rules and `DECISIONS.md` for choices.
 
-**Status:** Phase 0 (foundation) code is in place. Cloudflare setup below is still manual.
+**Status:** Phase 0 (foundation) and the calendar-link half of Phase 1 are built. Cloudflare setup below is still manual. See "Phase 1 status" at the bottom.
 
 ## Run locally
 
@@ -12,13 +12,31 @@ npm run dev            # web on :5173, proxies /api to :8787
 npm run dev -w @life/worker   # Worker (needs apps/worker/.dev.vars, see below)
 ```
 
-`apps/worker/.dev.vars` (never committed): `ACCESS_TEAM_DOMAIN`, `ACCESS_AUD`, `ALLOWED_EMAIL`.
+`apps/worker/.dev.vars` (never committed): `ACCESS_TEAM_DOMAIN`, `ACCESS_AUD`, `ALLOWED_EMAIL`, `TOKEN_KEY`.
+
+Generate the key once with `openssl rand -base64 32`. In production: `npx wrangler secret put TOKEN_KEY`. It encrypts saved calendar links; if you lose it, re-add the calendars.
 
 ## One-time Cloudflare setup (Phase 0 remaining)
 
-1. `npx wrangler d1 create life-db`, paste the id into `apps/worker/wrangler.toml`, then `npx wrangler d1 migrations apply life-db --remote`.
+1. `npx wrangler d1 create life-db`, paste the id into `apps/worker/wrangler.toml`, then `npx wrangler d1 migrations apply life-db --remote` (applies `0001` and `0002`).
 2. Create a Cloudflare Pages project from this repo: build `npm run build`, output `apps/web/dist`.
 3. Zero Trust > Access: create an application for your domain (passkey or email one-time code), allow only your email. Copy the AUD tag and team domain into `wrangler.toml`.
 4. `npx wrangler deploy` from `apps/worker`, then route `yourdomain/api/*` to it.
 
 Done when a logged-in phone shows the Today shell and a logged-out request gets nothing.
+
+## Phase 1 status (calendars and work shifts)
+
+Built and tested (42 worker tests run the real SQL against SQLite):
+
+- Add calendars by **ICS / webcal link** (work, school, family). Links are stored AES-GCM encrypted and are never sent back to the browser. Only public https hosts are fetched; redirects are re-checked; feeds are capped at 2 MB.
+- Worker cron refreshes every feed every 15 minutes, keeping 7 days back and 90 days ahead.
+- Parser handles time zones (including daylight saving), all-day events, daily and weekly repeats, cancelled events and edited single occurrences. Monthly and yearly repeats show their first occurrence only, with a warning.
+- Unified week view (Plan) with a colour per calendar type, today's schedule on Today.
+- **Shift change alerts**: when a work calendar changes after its first sync, you get an old-versus-new alert until you tap "Got it". Edits that regenerate IDs are still recognised as one change.
+
+Not built yet, and why:
+
+- Google Calendar and Microsoft Graph sign-in (OAuth), and the dedicated "Dashboard" calendar the app writes to. These need your own Google / Microsoft app credentials, so they wait for you.
+- Shift intake from schedule email or a photo/PDF roster read by Claude.
+- Saving onboarding answers in D1 (they still live in the browser).

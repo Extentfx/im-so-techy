@@ -11,6 +11,12 @@ ACCESS_TEAM_DOMAIN = ""   # e.g. https://yourteam.cloudflareaccess.com
 ACCESS_AUD = ""           # Application Audience (AUD) tag
 ALLOWED_EMAIL = ""        # the single owner
 
+# Poll calendar feeds every 15 minutes (Phase 1).
+[triggers]
+crons = ["*/15 * * * *"]
+
+# Secret (never in this file): `openssl rand -base64 32 | npx wrangler secret put TOKEN_KEY`
+
 # Create with: npx wrangler d1 create life-db   then paste the id here
 [[d1_databases]]
 binding = "DB"

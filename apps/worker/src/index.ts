@@ -1,18 +1,10 @@
 import type { HealthResponse } from '@life/shared';
 import { verifyAccessJwt } from './access';
+import { handleApi } from './api';
+import type { Env } from './env';
+import { syncAll } from './sync';
 
-export interface Env {
-  DB: D1Database;
-  ACCESS_TEAM_DOMAIN: string;
-  ACCESS_AUD: string;
-  ALLOWED_EMAIL: string;
-}
-
-const json = (body: unknown, status = 200): Response =>
-  new Response(JSON.stringify(body), {
-    status,
-    headers: { 'content-type': 'application/json', 'cache-control': 'no-store' },
-  });
+export type { Env };
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
@@ -27,8 +19,23 @@ export default {
     const url = new URL(request.url);
     if (url.pathname === '/api/health' && request.method === 'GET') {
       const body: HealthResponse = { ok: true, user: user.email };
-      return json(body);
+      return new Response(JSON.stringify(body), {
+        headers: { 'content-type': 'application/json', 'cache-control': 'no-store' },
+      });
     }
-    return json({ error: 'not_found' }, 404);
+    try {
+      return await handleApi(request, env);
+    } catch {
+      // Never leak internals (or feed URLs) in error bodies.
+      return new Response(JSON.stringify({ error: 'server_error' }), {
+        status: 500,
+        headers: { 'content-type': 'application/json' },
+      });
+    }
+  },
+
+  /** Every 15 minutes: refresh all calendar feeds and record shift changes. */
+  async scheduled(_event: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
+    ctx.waitUntil(syncAll(env));
   },
 } satisfies ExportedHandler<Env>;

@@ -5,6 +5,7 @@ import { loadProfile, saveProfile } from './lib/profile';
 import { RadialNav } from './components/RadialNav';
 import { Onboarding } from './screens/Onboarding';
 import { Placeholder } from './screens/Placeholder';
+import { Plan } from './screens/Plan';
 import { Today } from './screens/Today';
 
 export function App() {
@@ -34,6 +35,8 @@ export function App() {
       <main className="mx-auto min-h-full max-w-3xl px-4 pb-28 pt-[max(1.5rem,env(safe-area-inset-top))]">
         {tab === 'today' ? (
           <Today profile={profile} onEditSetup={() => setEditing(true)} />
+        ) : tab === 'plan' ? (
+          <Plan />
         ) : (
           <Placeholder tab={tab} />
         )}
