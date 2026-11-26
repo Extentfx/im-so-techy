@@ -4,6 +4,7 @@ import { Backdrop } from './components/Backdrop';
 import { RadialNav } from './components/RadialNav';
 import { getProfile, putProfile } from './lib/api';
 import { loadLocalProfile, saveLocalProfile } from './lib/profile';
+import { Chat } from './screens/Chat';
 import { Fuel } from './screens/Fuel';
 import { Inbox } from './screens/Inbox';
 import { Onboarding } from './screens/Onboarding';
@@ -78,6 +79,8 @@ export function App() {
           <Sleep profile={profile} />
         ) : tab === 'inbox' ? (
           <Inbox />
+        ) : tab === 'chat' ? (
+          <Chat />
         ) : (
           <Placeholder tab={tab} />
         )}
