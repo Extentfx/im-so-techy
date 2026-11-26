@@ -4,17 +4,31 @@ A private, calm dashboard that plans your week around work, school and family, a
 
 **Status:** Phase 0 (foundation) and the calendar-link half of Phase 1 are built. Cloudflare setup below is still manual. See "Phase 1 status" at the bottom.
 
-## Run locally
+## Run it on your computer (localhost)
+
+Needs Node 20 or newer.
 
 ```sh
+git clone https://github.com/Extentfx/im-so-techy.git
+cd im-so-techy
+git checkout claude/artifact-reference-cdafhn
 npm install
-npm run dev            # web on :5173, proxies /api to :8787
-npm run dev -w @life/worker   # Worker (needs apps/worker/.dev.vars, see below)
+npm run local
 ```
 
-`apps/worker/.dev.vars` (never committed): `ACCESS_TEAM_DOMAIN`, `ACCESS_AUD`, `ALLOWED_EMAIL`, `TOKEN_KEY`.
+Then open **http://localhost:5173**. That one command:
 
-Generate the key once with `openssl rand -base64 32`. In production: `npx wrangler secret put TOKEN_KEY`. It encrypts saved calendar links; if you lose it, re-add the calendars.
+- creates `apps/worker/.dev.vars` on first run (fresh encryption key, owner set to you; gitignored, never deploy it),
+- sets up a local database in `apps/worker/.wrangler` (your data stays in that folder),
+- starts the Worker on :8787 and the web app on :5173, and refreshes calendar feeds every 15 minutes.
+
+Stop with Ctrl+C. Delete `apps/worker/.wrangler` to start with an empty database.
+
+Local mode skips the Cloudflare login, but only for requests to `localhost` when `LOCAL_DEV=1` is in `.dev.vars` and no Cloudflare edge header is present. Production never has that flag, so it still fails closed.
+
+To add a calendar, open the round button in the bottom-right corner, choose Plan, and paste an ICS link (Google Calendar: settings for the calendar, "Secret address in iCal format").
+
+Manual pieces: `npm run dev` (web only), `npm run dev -w @life/worker` (Worker only).
 
 ## One-time Cloudflare setup (Phase 0 remaining)
 

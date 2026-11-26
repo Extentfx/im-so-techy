@@ -1,5 +1,5 @@
 import type { HealthResponse } from '@life/shared';
-import { verifyAccessJwt } from './access';
+import { resolveUser } from './auth';
 import { handleApi } from './api';
 import type { Env } from './env';
 import { syncAll } from './sync';
@@ -9,11 +9,7 @@ export type { Env };
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     // Defense in depth: even if a route is misconfigured outside Access, we fail closed here.
-    const user = await verifyAccessJwt(request.headers.get('cf-access-jwt-assertion'), {
-      teamDomain: env.ACCESS_TEAM_DOMAIN,
-      aud: env.ACCESS_AUD,
-      allowedEmail: env.ALLOWED_EMAIL,
-    });
+    const user = await resolveUser(request, env);
     if (!user) return new Response(null, { status: 401 });
 
     const url = new URL(request.url);

@@ -18,7 +18,7 @@ export default tseslint.config(
     languageOptions: { globals: { ...globals.serviceworker } },
   },
   {
-    files: ['*.config.{js,ts}', 'apps/*/*.config.{js,ts}'],
+    files: ['*.config.{js,ts}', 'apps/*/*.config.{js,ts}', 'scripts/**/*.mjs'],
     languageOptions: { globals: globals.node },
   },
 );
