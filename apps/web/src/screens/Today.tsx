@@ -1,18 +1,31 @@
 import { GlassCard } from '../components/Glass';
+import type { Profile } from '@life/shared';
 import { ProgressRing } from '../components/ProgressRing';
 
 const greeting = (h: number) =>
   h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
 
-export function Today() {
+export function Today({ profile, onEditSetup }: { profile: Profile; onEditSetup: () => void }) {
   const now = new Date();
   return (
     <div className="grid gap-4">
       <header className="px-1 pt-2">
-        <p className="text-sm text-[var(--ink-soft)]">
-          {now.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}
-        </p>
-        <h1 className="font-display text-5xl italic leading-tight">{greeting(now.getHours())}.</h1>
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-[var(--ink-soft)]">
+            {now.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}
+          </p>
+          <button
+            type="button"
+            onClick={onEditSetup}
+            className="min-h-11 px-2 text-sm text-[var(--ink-soft)] underline-offset-4 hover:underline"
+          >
+            Edit setup
+          </button>
+        </div>
+        <h1 className="font-display text-5xl italic leading-tight">
+          {greeting(now.getHours())}
+          {profile.name ? `, ${profile.name}` : ''}.
+        </h1>
       </header>
 
       <div className="grid grid-cols-2 gap-4">

@@ -19,5 +19,26 @@ export interface HealthResponse {
   user: string;
 }
 
-export const TABS = ['today', 'plan', 'train', 'fuel', 'sleep', 'home', 'inbox'] as const;
-export type TabId = (typeof TABS)[number];
+export type Units = 'lb' | 'kg';
+export type CalendarProvider = 'google' | 'outlook' | 'apple' | 'ics';
+export type LunchFor = 'me' | 'kids' | 'both' | 'none';
+export type SleepTracker =
+  'phone' | 'oura' | 'fitbit' | 'apple-watch' | 'garmin' | 'whoop' | 'none';
+export type HomeSystem =
+  'home-assistant' | 'hue' | 'homekit' | 'google-home' | 'alexa' | 'smartthings' | 'none';
+
+/** Answers from onboarding. Single owner; later phases move this into D1 settings. */
+export interface Profile {
+  completed: boolean;
+  name: string;
+  units: Units;
+  calorieTarget: number | null;
+  workoutsPerWeek: number;
+  calendars: CalendarProvider[];
+  shiftsChange: boolean;
+  lunchFor: LunchFor;
+  sleepTracker: SleepTracker;
+  sleepHours: number;
+  wakeTime: string; // HH:MM
+  homeSystems: HomeSystem[];
+}
