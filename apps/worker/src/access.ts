@@ -8,6 +8,8 @@ export interface AccessConfig {
   teamDomain: string; // https://<team>.cloudflareaccess.com
   aud: string;
   allowedEmail: string;
+  /** Cloudflare Access service-token client IDs allowed to call /api/ingest/* (comma separated in env). */
+  serviceTokenIds?: string[];
 }
 
 interface Jwk extends JsonWebKey {
@@ -36,7 +38,7 @@ export async function verifyAccessJwt(
   cfg: AccessConfig,
   getKeys: KeyFetcher = fetchAccessKeys,
   now: number = Math.floor(Date.now() / 1000),
-): Promise<{ email: string } | null> {
+): Promise<{ email: string; service?: boolean } | null> {
   try {
     if (!token || !cfg.teamDomain || !cfg.aud || !cfg.allowedEmail) return null;
     const parts = token.split('.');
@@ -71,12 +73,19 @@ export async function verifyAccessJwt(
       exp?: number;
       nbf?: number;
       email?: string;
+      common_name?: string;
     }>(p);
     const auds = Array.isArray(claims.aud) ? claims.aud : [claims.aud];
     if (!auds.includes(cfg.aud)) return null;
     if (claims.iss !== cfg.teamDomain) return null;
     if (typeof claims.exp !== 'number' || claims.exp <= now) return null;
     if (typeof claims.nbf === 'number' && claims.nbf > now + 60) return null;
+    if (claims.common_name && !claims.email) {
+      // A service token (for example an iOS Shortcut). Only listed IDs, and the Worker restricts where they can go.
+      return cfg.serviceTokenIds?.includes(claims.common_name)
+        ? { email: `service:${claims.common_name}`, service: true }
+        : null;
+    }
     if (!claims.email || claims.email.toLowerCase() !== cfg.allowedEmail.toLowerCase()) return null;
     return { email: claims.email };
   } catch {

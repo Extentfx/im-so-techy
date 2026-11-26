@@ -228,3 +228,19 @@ export const getLunchRules = () =>
   );
 export const putLunchRules = (rules: (Macros & { weekday: number; name: string })[]) =>
   call<{ ok: true }>('PUT', '/api/lunch/rules', { rules });
+
+/* ---------- Phase 4: sleep ---------- */
+export interface SleepSummary {
+  nights: { date: string; minutes: number }[];
+  targetHours: number;
+  debtHours: number;
+  recovery: { light: boolean; reason: string | null };
+  open: string | null;
+  suggestion: { bedtime: string; wake: string; basedOn: string };
+}
+export const getSleep = () => call<SleepSummary>('GET', '/api/sleep');
+export const sleepBed = () => call<{ ok: true }>('POST', '/api/sleep/bed');
+export const sleepWake = () => call<{ minutes: number }>('POST', '/api/sleep/wake');
+export const logSleep = (bedAt: string, wakeAt: string) =>
+  call<{ date: string }>('POST', '/api/sleep', { bedAt, wakeAt });
+export const deleteSleep = (date: string) => call<{ ok: true }>('DELETE', `/api/sleep/${date}`);

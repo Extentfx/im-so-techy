@@ -8,6 +8,7 @@ import { Fuel } from './screens/Fuel';
 import { Onboarding } from './screens/Onboarding';
 import { Placeholder } from './screens/Placeholder';
 import { Plan } from './screens/Plan';
+import { Sleep } from './screens/Sleep';
 import { Today } from './screens/Today';
 import { Train } from './screens/Train';
 
@@ -72,6 +73,8 @@ export function App() {
           <Train profile={profile} />
         ) : tab === 'fuel' ? (
           <Fuel profile={profile} />
+        ) : tab === 'sleep' ? (
+          <Sleep profile={profile} />
         ) : (
           <Placeholder tab={tab} />
         )}

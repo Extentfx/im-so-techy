@@ -12,6 +12,9 @@ export default {
     // Defense in depth: even if a route is misconfigured outside Access, we fail closed here.
     const user = await resolveUser(request, env);
     if (!user) return new Response(null, { status: 401 });
+    // Service tokens exist only so a phone Shortcut can post data; they reach nothing else.
+    if (user.service && !new URL(request.url).pathname.startsWith('/api/ingest/'))
+      return new Response(null, { status: 403 });
 
     const url = new URL(request.url);
     if (url.pathname === '/api/health' && request.method === 'GET') {

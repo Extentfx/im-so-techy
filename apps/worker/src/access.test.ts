@@ -82,3 +82,23 @@ describe('verifyAccessJwt', () => {
     expect(await verifyAccessJwt(await sign(good, 'none'), cfg, keys, now)).toBeNull();
   });
 });
+
+describe('service tokens', () => {
+  const svc = {
+    aud: ['aud-123'],
+    iss: cfg.teamDomain,
+    exp: now + 300,
+    common_name: 'shortcut.access',
+  };
+  it('accepts only listed service tokens', async () => {
+    const { keys, sign } = await setup();
+    const tok = await sign(svc);
+    expect(
+      await verifyAccessJwt(tok, { ...cfg, serviceTokenIds: ['shortcut.access'] }, keys, now),
+    ).toEqual({ email: 'service:shortcut.access', service: true });
+    expect(await verifyAccessJwt(tok, cfg, keys, now)).toBeNull();
+    expect(
+      await verifyAccessJwt(tok, { ...cfg, serviceTokenIds: ['other.access'] }, keys, now),
+    ).toBeNull();
+  });
+});

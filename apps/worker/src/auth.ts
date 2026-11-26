@@ -10,14 +10,21 @@ import type { Env } from './env';
  */
 export async function resolveUser(
   request: Request,
-  env: Pick<Env, 'ACCESS_TEAM_DOMAIN' | 'ACCESS_AUD' | 'ALLOWED_EMAIL'> & { LOCAL_DEV?: string },
+  env: Pick<Env, 'ACCESS_TEAM_DOMAIN' | 'ACCESS_AUD' | 'ALLOWED_EMAIL'> & {
+    LOCAL_DEV?: string;
+    ALLOWED_SERVICE_TOKENS?: string;
+  },
   verify: typeof verifyAccessJwt = verifyAccessJwt,
-): Promise<{ email: string } | null> {
+): Promise<{ email: string; service?: boolean } | null> {
   if (env.LOCAL_DEV === '1' && isLocalRequest(request)) return { email: 'local@localhost' };
   const cfg: AccessConfig = {
     teamDomain: env.ACCESS_TEAM_DOMAIN,
     aud: env.ACCESS_AUD,
     allowedEmail: env.ALLOWED_EMAIL,
+    serviceTokenIds: (env.ALLOWED_SERVICE_TOKENS ?? '')
+      .split(',')
+      .map((x) => x.trim())
+      .filter(Boolean),
   };
   return verify(request.headers.get('cf-access-jwt-assertion'), cfg);
 }

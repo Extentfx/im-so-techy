@@ -1,7 +1,7 @@
 import { useMemo, useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import type { Mesh } from 'three';
-import { paletteForHour } from '../lib/timeOfDay';
+import { paletteForHour, tintForSleep } from '../lib/timeOfDay';
 import { usePageVisible } from '../lib/useMotion';
 
 interface OrbSpec {
@@ -38,17 +38,22 @@ function Orb({ spec }: { spec: OrbSpec }) {
   );
 }
 
-export default function Orbs() {
+export default function Orbs({ sleepQuality = 1 }: { sleepQuality?: number }) {
   const visible = usePageVisible();
   const specs = useMemo<OrbSpec[]>(() => {
-    const p = paletteForHour(new Date().getHours());
+    const p0 = paletteForHour(new Date().getHours());
+    const p = {
+      a: tintForSleep(p0.a, sleepQuality),
+      b: tintForSleep(p0.b, sleepQuality),
+      c: tintForSleep(p0.c, sleepQuality),
+    };
     return [
       { pos: [-3.2, 1.8, -2], r: 1.7, color: p.a, speed: 0.12, phase: 0 },
       { pos: [3.4, -1.2, -3], r: 2.1, color: p.b, speed: 0.09, phase: 2 },
       { pos: [0.4, 2.8, -4], r: 1.2, color: p.c, speed: 0.15, phase: 4 },
       { pos: [-1.2, -2.6, -3], r: 1.4, color: p.c, speed: 0.1, phase: 1 },
     ];
-  }, []);
+  }, [sleepQuality]);
   return (
     <Canvas
       dpr={[1, 1.5]}
