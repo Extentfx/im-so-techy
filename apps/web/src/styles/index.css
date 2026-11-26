@@ -122,74 +122,103 @@ body {
   transition: transform 1.2s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
-/* Radial page selector, anchored to the bottom-right screen corner. */
+/* Radial page selector: a spinnable dial of round buttons around the bottom-right corner. */
 .radial {
   position: fixed;
   right: 0;
   bottom: 0;
   z-index: 30;
-  width: min(88vw, 340px);
-  aspect-ratio: 1;
   pointer-events: none;
 }
-.radial-wheel {
+.radial-dial {
   position: absolute;
   inset: 0;
-  width: 100%;
-  height: 100%;
-  overflow: visible;
   transform-origin: 100% 100%;
-  transform: scale(0.25) rotate(-35deg);
+  transform: scale(0.3) rotate(-40deg);
   opacity: 0;
   visibility: hidden;
   transition:
     transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1),
     opacity 0.25s ease,
     visibility 0s linear 0.45s;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
 }
-.radial[data-open='true'] .radial-wheel {
+.radial[data-open='true'] .radial-dial {
   transform: none;
   opacity: 1;
   visibility: visible;
-  pointer-events: auto;
   transition:
     transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1),
     opacity 0.25s ease,
     visibility 0s;
 }
-.radial-item {
+.radial-track {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.radial-track path {
+  fill: none;
+  stroke: rgb(12 16 36 / 0.5);
+  stroke-width: 76;
+  pointer-events: stroke;
+  cursor: grab;
+}
+.radial-dot {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1px solid rgb(255 255 255 / 0.28);
+  background: rgb(18 24 52 / 0.82);
+  color: #fff;
+  pointer-events: auto;
   cursor: pointer;
-  outline: none;
+  will-change: transform, opacity;
   -webkit-tap-highlight-color: transparent;
-  opacity: 0;
-  transition: opacity 0.3s ease;
 }
-.radial[data-open='true'] .radial-item {
-  opacity: 1;
+.radial-dot svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
-.radial-item path {
-  fill: rgb(12 16 36 / 0.66);
-  stroke: rgb(255 255 255 / 0.22);
-  stroke-width: 1;
-  transition: fill 0.2s;
+.radial-dot[data-hidden='true'] {
+  pointer-events: none;
 }
-.radial-item:hover path,
-.radial-item:focus-visible path {
-  fill: rgb(40 50 100 / 0.82);
+.radial-dot[data-active='true'] {
+  background: var(--accent);
+  border-color: transparent;
 }
-.radial-item:focus-visible path {
-  stroke: #fff;
-  stroke-width: 2;
+.radial-dot:hover {
+  background: rgb(46 58 118 / 0.95);
 }
-.radial-item[data-active='true'] path {
-  fill: var(--accent);
+.radial-dot[data-active='true']:hover {
+  background: var(--accent);
 }
-.radial-item text {
-  fill: #fff;
+.radial-dot:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+}
+.radial-label {
+  position: absolute;
+  transform: translate(-50%, -50%);
   font:
-    500 13px 'Inter Variable',
+    500 11px 'Inter Variable',
     system-ui,
     sans-serif;
+  letter-spacing: 0.02em;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  background: rgb(12 16 36 / 0.62);
+  white-space: nowrap;
   pointer-events: none;
 }
 .radial-hub {
