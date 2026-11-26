@@ -244,3 +244,30 @@ export const sleepWake = () => call<{ minutes: number }>('POST', '/api/sleep/wak
 export const logSleep = (bedAt: string, wakeAt: string) =>
   call<{ date: string }>('POST', '/api/sleep', { bedAt, wakeAt });
 export const deleteSleep = (date: string) => call<{ ok: true }>('DELETE', `/api/sleep/${date}`);
+
+/* ---------- Phase 5: email ---------- */
+export interface DigestItem {
+  id: string;
+  receivedAt: string;
+  sender: string;
+  subject: string;
+  category: 'school' | 'work' | 'family' | 'bills' | 'other';
+  summary: string;
+  proposals: {
+    id: string;
+    summary: string;
+    status: string;
+    payload: { title: string; start: string; end: string; allDay?: boolean };
+  }[];
+}
+export const ingestEmail = (b: { from: string; subject: string; body: string }) =>
+  call<{ id: string; category: string; proposals: number; usedClaude: boolean }>(
+    'POST',
+    '/api/email/ingest',
+    b,
+  );
+export const getDigest = () =>
+  call<{ items: DigestItem[] }>('GET', '/api/email/digest').then((r) => r.items ?? []);
+export const dismissEmail = (id: string) => call<{ ok: true }>('POST', `/api/email/${id}/dismiss`);
+export const getEmailSummary = () =>
+  call<{ counts: Record<string, number>; pendingProposals: number }>('GET', '/api/email/summary');

@@ -25,6 +25,7 @@ export * from './exercises';
 export * from './gym';
 export * from './scheduler';
 export * from './sleep';
+export * from './email';
 
 export const TABS = [
   'today',

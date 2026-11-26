@@ -5,6 +5,7 @@ import { RadialNav } from './components/RadialNav';
 import { getProfile, putProfile } from './lib/api';
 import { loadLocalProfile, saveLocalProfile } from './lib/profile';
 import { Fuel } from './screens/Fuel';
+import { Inbox } from './screens/Inbox';
 import { Onboarding } from './screens/Onboarding';
 import { Placeholder } from './screens/Placeholder';
 import { Plan } from './screens/Plan';
@@ -75,6 +76,8 @@ export function App() {
           <Fuel profile={profile} />
         ) : tab === 'sleep' ? (
           <Sleep profile={profile} />
+        ) : tab === 'inbox' ? (
+          <Inbox />
         ) : (
           <Placeholder tab={tab} />
         )}
