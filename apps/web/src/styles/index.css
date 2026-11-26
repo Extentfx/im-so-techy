@@ -1,0 +1,80 @@
+@import 'tailwindcss';
+
+/* Design tokens. Light theme is default; dark follows the system. */
+:root {
+  --bg-a: #e8eeff;
+  --bg-b: #f6e9ff;
+  --ink: #141a2e;
+  --ink-soft: #4a5472;
+  --glass-fill: rgb(255 255 255 / 0.1);
+  --glass-fill-strong: rgb(255 255 255 / 0.18);
+  --glass-border: rgb(255 255 255 / 0.18);
+  --glass-hi: rgb(255 255 255 / 0.35);
+  --accent: #5b7cff;
+  --accent-2: #b07cff;
+  --ok: #2fbf8a;
+  --blur: 24px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-a: #0b1020;
+    --bg-b: #1a1033;
+    --ink: #eef1ff;
+    --ink-soft: #a6afd0;
+    --glass-fill: rgb(255 255 255 / 0.06);
+    --glass-fill-strong: rgb(255 255 255 / 0.12);
+  }
+}
+/* On light backgrounds white-on-white glass has no contrast; darken the fill slightly. */
+@media (prefers-color-scheme: light) {
+  :root {
+    --glass-fill: rgb(255 255 255 / 0.35);
+    --glass-fill-strong: rgb(255 255 255 / 0.55);
+    --glass-border: rgb(255 255 255 / 0.7);
+  }
+}
+
+@theme {
+  --font-display: 'Instrument Serif', Georgia, serif;
+  --font-sans: 'Inter Variable', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono Variable', ui-monospace, monospace;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+body {
+  margin: 0;
+  color: var(--ink);
+  font-family: var(--font-sans);
+  /* CSS gradient doubles as the no-WebGL / reduced-motion fallback. */
+  background: linear-gradient(160deg, var(--bg-a), var(--bg-b));
+  background-attachment: fixed;
+  -webkit-font-smoothing: antialiased;
+}
+
+.glass {
+  background: var(--glass-fill);
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(150%);
+  backdrop-filter: blur(var(--blur)) saturate(150%);
+  border: 1px solid var(--glass-border);
+  box-shadow:
+    inset 0 1px 0 var(--glass-hi),
+    0 10px 30px rgb(10 16 40 / 0.18);
+}
+/* Fewer stacked blurred layers on phones keeps scrolling smooth. */
+@media (max-width: 640px) {
+  :root {
+    --blur: 16px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

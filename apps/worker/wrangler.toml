@@ -1,0 +1,19 @@
+name = "life-worker"
+main = "src/index.ts"
+compatibility_date = "2024-11-01"
+
+# Static app is served by Cloudflare Pages; this Worker owns /api/*.
+# Route is attached once the domain exists, e.g. life.example.com/api/*
+
+[vars]
+# Fill in after creating the Access application (Zero Trust > Access > Applications).
+ACCESS_TEAM_DOMAIN = ""   # e.g. https://yourteam.cloudflareaccess.com
+ACCESS_AUD = ""           # Application Audience (AUD) tag
+ALLOWED_EMAIL = ""        # the single owner
+
+# Create with: npx wrangler d1 create life-db   then paste the id here
+[[d1_databases]]
+binding = "DB"
+database_name = "life-db"
+database_id = "REPLACE_ME"
+migrations_dir = "migrations"
