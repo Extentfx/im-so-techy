@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { Profile, TabId } from '@life/shared';
 import { Backdrop } from './components/Backdrop';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { RadialNav } from './components/RadialNav';
 import { getProfile, putProfile } from './lib/api';
 import { loadLocalProfile, saveLocalProfile } from './lib/profile';
@@ -75,25 +76,27 @@ function Dashboard() {
     <>
       <Backdrop />
       <main className="mx-auto min-h-full max-w-3xl px-4 pb-28 pt-[max(1.5rem,env(safe-area-inset-top))]">
-        {tab === 'today' ? (
-          <Today profile={profile} onEditSetup={() => setEditing(true)} />
-        ) : tab === 'plan' ? (
-          <Plan />
-        ) : tab === 'train' ? (
-          <Train profile={profile} />
-        ) : tab === 'fuel' ? (
-          <Fuel profile={profile} />
-        ) : tab === 'sleep' ? (
-          <Sleep profile={profile} />
-        ) : tab === 'inbox' ? (
-          <Inbox />
-        ) : tab === 'home' ? (
-          <Home />
-        ) : tab === 'chat' ? (
-          <Chat />
-        ) : (
-          <Settings profile={profile} onSave={save} onRedoSetup={() => setEditing(true)} />
-        )}
+        <ErrorBoundary key={tab}>
+          {tab === 'today' ? (
+            <Today profile={profile} onEditSetup={() => setEditing(true)} />
+          ) : tab === 'plan' ? (
+            <Plan />
+          ) : tab === 'train' ? (
+            <Train profile={profile} />
+          ) : tab === 'fuel' ? (
+            <Fuel profile={profile} />
+          ) : tab === 'sleep' ? (
+            <Sleep profile={profile} />
+          ) : tab === 'inbox' ? (
+            <Inbox />
+          ) : tab === 'home' ? (
+            <Home />
+          ) : tab === 'chat' ? (
+            <Chat />
+          ) : (
+            <Settings profile={profile} onSave={save} onRedoSetup={() => setEditing(true)} />
+          )}
+        </ErrorBoundary>
       </main>
       <RadialNav active={tab} onSelect={setTab} />
     </>

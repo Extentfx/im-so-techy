@@ -22,6 +22,7 @@ import {
 import { fmtWhen } from '../lib/week';
 import { fmtWeight, fromDisplay, toDisplay, unitLabel } from '../lib/units';
 import { useCountdown } from '../lib/useCountdown';
+import { useError } from '../lib/useError';
 import { GlassButton, GlassCard } from '../components/Glass';
 import { Spark } from '../components/Spark';
 
@@ -37,7 +38,7 @@ interface DraftBlock {
 }
 
 const inputCls =
-  'min-h-11 w-full rounded-xl border border-black/10 bg-white/50 px-3 text-base dark:border-white/20 dark:bg-white/10';
+  'min-h-11 w-full min-w-0 rounded-xl border border-black/10 bg-white/50 px-3 text-base dark:border-white/20 dark:bg-white/10';
 const today = () => new Date().toLocaleDateString('en-CA');
 
 export function Train({ profile }: { profile: Profile }) {
@@ -47,7 +48,7 @@ export function Train({ profile }: { profile: Profile }) {
   const [history, setHistory] = useState<Workout[]>([]);
   const [weights, setWeights] = useState<{ date: string; kg: number }[]>([]);
   const [proposals, setProposals] = useState<Proposal[]>([]);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useError();
 
   const [blocks, setBlocks] = useState<DraftBlock[] | null>(null);
   const [startedAt, setStartedAt] = useState<string>('');
@@ -70,11 +71,10 @@ export function Train({ profile }: { profile: Profile }) {
       setHistory(h);
       setWeights(w);
       setProposals(p.filter((x) => x.source === 'scheduler'));
-      setError(null);
     } catch (e) {
       setError(friendly(e));
     }
-  }, []);
+  }, [setError]);
   useEffect(() => {
     getExercises().then(setExercises, () => undefined);
     void load();
@@ -217,7 +217,7 @@ export function Train({ profile }: { profile: Profile }) {
           <h2 className="font-display text-2xl">
             New personal record{prs.length > 1 ? 's' : ''} 🎉
           </h2>
-          <ul className="mt-2 grid gap-1 text-sm">
+          <ul className="mt-2 grid grid-cols-[minmax(0,1fr)] gap-1 text-sm">
             {prs.map((p, i) => (
               <li key={i}>
                 {p.name}: {fmtWeight(p.weightKg, u)} × {p.reps}
@@ -237,7 +237,7 @@ export function Train({ profile }: { profile: Profile }) {
           </GlassButton>
         </div>
         {proposals.length ? (
-          <ul className="mt-3 grid gap-3">
+          <ul className="mt-3 grid grid-cols-[minmax(0,1fr)] gap-3">
             {proposals.map((p) => (
               <li key={p.id} className="flex flex-wrap items-center justify-between gap-2 text-sm">
                 <div className="min-w-0 basis-48 flex-1">
@@ -366,7 +366,7 @@ export function Train({ profile }: { profile: Profile }) {
                     ),
                   )
                 }
-                className="min-h-11 justify-self-start text-sm text-[var(--accent)]"
+                className="min-h-11 justify-self-start text-sm text-[var(--accent-text)]"
               >
                 + Add set
               </button>
@@ -453,7 +453,7 @@ export function Train({ profile }: { profile: Profile }) {
       <GlassCard aria-label="History">
         <h2 className="text-xs uppercase tracking-wider text-[var(--ink-soft)]">History</h2>
         {history.length ? (
-          <ul className="mt-3 grid gap-3">
+          <ul className="mt-3 grid grid-cols-[minmax(0,1fr)] gap-3">
             {history.map((w) => (
               <li key={w.id} className="text-sm">
                 <div className="flex items-start justify-between gap-2">

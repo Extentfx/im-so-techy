@@ -18,10 +18,11 @@ import {
   type Entity,
   type Scene,
 } from '../lib/homeApi';
+import { useError } from '../lib/useError';
 import { GlassButton, GlassCard } from '../components/Glass';
 
 const inputCls =
-  'min-h-11 w-full rounded-xl border border-black/10 bg-white/50 px-3 text-base dark:border-white/20 dark:bg-white/10';
+  'min-h-11 w-full min-w-0 rounded-xl border border-black/10 bg-white/50 px-3 text-base dark:border-white/20 dark:bg-white/10';
 const LABEL: Record<string, string> = {
   on: 'On',
   off: 'Off',
@@ -46,7 +47,7 @@ export function Home() {
   const [scenes, setScenes] = useState<Scene[]>([]);
   const [entities, setEntities] = useState<Entity[] | null>(null);
   const [pending, setPending] = useState<Pending | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useError();
   const [note, setNote] = useState<string | null>(null);
   const [url, setUrl] = useState('');
   const [token, setToken] = useState('');
@@ -65,12 +66,11 @@ export function Home() {
         setDevices(d);
         setScenes(s);
       }
-      setError(null);
     } catch (e) {
       setError(friendly(e));
       setHost((h) => (h === undefined ? null : h));
     }
-  }, []);
+  }, [setError]);
   useEffect(() => void load(), [load]);
 
   const guard = async (fn: () => Promise<unknown>) => {
@@ -210,7 +210,7 @@ export function Home() {
                 limits.
               </p>
             )}
-            <ul className="grid gap-3">
+            <ul className="grid grid-cols-[minmax(0,1fr)] gap-3">
               {devices.map((d) => (
                 <li key={d.entityId} className="grid gap-2">
                   <div className="flex items-center justify-between gap-2">
@@ -301,7 +301,7 @@ export function Home() {
                   )}
                   <button
                     type="button"
-                    className="min-h-11 justify-self-start text-sm text-[var(--accent)]"
+                    className="min-h-11 justify-self-start text-sm text-[var(--accent-text)]"
                     onClick={() => setEntities(null)}
                   >
                     Close
@@ -319,7 +319,7 @@ export function Home() {
             <h2 className="text-xs uppercase tracking-wider text-[var(--ink-soft)]">
               Scenes and routines
             </h2>
-            <ul className="grid gap-3">
+            <ul className="grid grid-cols-[minmax(0,1fr)] gap-3">
               {scenes.map((s) => (
                 <li key={s.id} className="grid gap-1">
                   <div className="flex items-center justify-between gap-2">
@@ -375,7 +375,7 @@ export function Home() {
             </ul>
             {devices.some((d) => !d.sensitive) && (
               <details>
-                <summary className="min-h-11 cursor-pointer text-sm text-[var(--accent)]">
+                <summary className="min-h-11 cursor-pointer text-sm text-[var(--accent-text)]">
                   New scene
                 </summary>
                 <div className="mt-2 grid gap-2">

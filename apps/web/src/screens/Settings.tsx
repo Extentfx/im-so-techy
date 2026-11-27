@@ -15,10 +15,11 @@ import {
   testNotify,
   type AuditRow,
 } from '../lib/adminApi';
+import { useError } from '../lib/useError';
 import { GlassButton, GlassCard } from '../components/Glass';
 
 const inputCls =
-  'min-h-11 w-full rounded-xl border border-black/10 bg-white/50 px-3 text-base dark:border-white/20 dark:bg-white/10';
+  'min-h-11 w-full min-w-0 rounded-xl border border-black/10 bg-white/50 px-3 text-base dark:border-white/20 dark:bg-white/10';
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
 
 function Num({
@@ -74,7 +75,7 @@ export function Settings({
 }) {
   const [p, setP] = useState(profile);
   const [saved, setSaved] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useError();
   const [note, setNote] = useState<string | null>(null);
   const [lunch, setLunch] = useState<
     Record<number, { name: string; kcal: string; protein: string }>
@@ -111,7 +112,7 @@ export function Settings({
     } catch (e) {
       setError(friendly(e));
     }
-  }, []);
+  }, [setError]);
   useEffect(() => void load(), [load]);
 
   const guard = async (fn: () => Promise<unknown>, ok?: string) => {
@@ -259,7 +260,7 @@ export function Settings({
               setSaved(true);
             }}
           >
-            {saved ? 'Saved ✓' : 'Save'}
+            {saved ? 'Saved ✓' : 'Save goals'}
           </GlassButton>
         </div>
       </GlassCard>
@@ -277,7 +278,10 @@ export function Settings({
           const upd = (patch: Partial<typeof r>) =>
             setLunch({ ...lunch, [i + 1]: { ...r, ...patch } });
           return (
-            <div key={d} className="grid grid-cols-[4.5rem_1fr_4.5rem_4.5rem] items-center gap-2">
+            <div
+              key={d}
+              className="grid grid-cols-[3rem_minmax(0,1fr)_4rem_4rem] items-center gap-2"
+            >
               <span className="text-sm">{d.slice(0, 3)}</span>
               <input
                 aria-label={`${d} lunch`}
@@ -375,7 +379,7 @@ export function Settings({
               onChange={(e) => setTopic(e.target.value)}
             />
             <GlassButton type="submit" disabled={topic.length < 8}>
-              Save
+              Save topic
             </GlassButton>
           </form>
         )}
@@ -419,7 +423,7 @@ export function Settings({
           <div className="grid gap-1 rounded-2xl bg-[var(--glass-fill-strong)] p-3 text-sm">
             <p className="font-medium">Copy it now. It will not be shown again.</p>
             <input
-              aria-label="Family link"
+              aria-label="Your new family link"
               readOnly
               className={inputCls}
               value={newLink}
@@ -518,7 +522,7 @@ export function Settings({
           <summary className="min-h-11 cursor-pointer text-sm">
             Recent changes the app made ({audit.length})
           </summary>
-          <ul className="mt-2 grid gap-1 text-xs text-[var(--ink-soft)]">
+          <ul className="mt-2 grid grid-cols-[minmax(0,1fr)] gap-1 text-xs text-[var(--ink-soft)]">
             {audit.map((a) => (
               <li key={a.id}>
                 {a.at} · {a.source} · {a.action} · {a.target ?? ''} · {a.result}

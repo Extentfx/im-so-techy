@@ -67,7 +67,7 @@ export function BarcodeScanner({
       <button
         type="button"
         onClick={onClose}
-        className="min-h-11 justify-self-start text-sm text-[var(--accent)]"
+        className="min-h-11 justify-self-start text-sm text-[var(--accent-text)]"
       >
         Close camera
       </button>

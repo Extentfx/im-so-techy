@@ -15,7 +15,7 @@ export function ShiftAlerts({
   return (
     <GlassCard aria-label="Shift changes" className="border-[var(--accent)]">
       <h2 className="text-xs uppercase tracking-wider text-[var(--ink-soft)]">Schedule changed</h2>
-      <ul className="mt-3 grid gap-4">
+      <ul className="mt-3 grid grid-cols-[minmax(0,1fr)] gap-4">
         {alerts.map((a) => (
           <li key={a.id} className="flex items-start justify-between gap-3">
             <div className="text-sm">

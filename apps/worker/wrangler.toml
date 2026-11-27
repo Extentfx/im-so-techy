@@ -10,12 +10,22 @@ compatibility_date = "2024-11-01"
 ACCESS_TEAM_DOMAIN = ""   # e.g. https://yourteam.cloudflareaccess.com
 ACCESS_AUD = ""           # Application Audience (AUD) tag
 ALLOWED_EMAIL = ""        # the single owner
+# Optional: Access service-token client IDs (comma separated) allowed to POST /api/ingest/* only,
+# for an iOS Shortcut or wearable that posts sleep data. Everything else rejects them.
+ALLOWED_SERVICE_TOKENS = ""
+# Optional: daily Claude spend cap in US dollars (chat stops and falls back to built-in answers).
+CHAT_DAILY_CAP_USD = "1"
 
-# Poll calendar feeds every 15 minutes (Phase 1).
+# Every 15 minutes: refresh calendar feeds, re-plan, run enabled home routines and bedtime
+# reminders, and (once a day) store an encrypted backup if R2 is bound.
 [triggers]
 crons = ["*/15 * * * *"]
 
-# Secret (never in this file): `openssl rand -base64 32 | npx wrangler secret put TOKEN_KEY`
+# Secrets (never in this file). Each: `npx wrangler secret put NAME`
+#   TOKEN_KEY          required. `openssl rand -base64 32`. Encrypts calendar links, the Home Assistant token and backups.
+#   ANTHROPIC_API_KEY  optional. Turns on Claude for chat and email labelling.
+#   FDC_API_KEY        optional. A free USDA FoodData Central key (otherwise a shared, rate-limited demo key is used).
+#   BACKUP_KEY         optional. A separate key for backups (defaults to TOKEN_KEY).
 
 # Create with: npx wrangler d1 create life-db   then paste the id here
 [[d1_databases]]
@@ -23,3 +33,9 @@ binding = "DB"
 database_name = "life-db"
 database_id = "REPLACE_ME"
 migrations_dir = "migrations"
+
+# Optional: nightly encrypted backups, kept for two weeks.
+# Create with: npx wrangler r2 bucket create life-backups   then uncomment:
+# [[r2_buckets]]
+# binding = "BACKUPS"
+# bucket_name = "life-backups"

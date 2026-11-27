@@ -19,12 +19,13 @@ import {
   type Slot,
 } from '../lib/api';
 import { BarcodeScanner, canScan } from '../components/BarcodeScanner';
+import { useError } from '../lib/useError';
 import { GlassButton, GlassCard } from '../components/Glass';
 import { ProgressRing } from '../components/ProgressRing';
 
 const SLOTS: Slot[] = ['breakfast', 'lunch', 'dinner', 'snack'];
 const inputCls =
-  'min-h-11 w-full rounded-xl border border-black/10 bg-white/50 px-3 text-base dark:border-white/20 dark:bg-white/10';
+  'min-h-11 w-full min-w-0 rounded-xl border border-black/10 bg-white/50 px-3 text-base dark:border-white/20 dark:bg-white/10';
 const todayKey = () => new Date().toLocaleDateString('en-CA');
 const defaultSlot = (): Slot => {
   const h = new Date().getHours();
@@ -36,7 +37,7 @@ export function Fuel({ profile }: { profile: Profile }) {
   const [log, setLog] = useState<DayLog | null>(null);
   const [lunch, setLunch] = useState<LunchToday | null>(null);
   const [meals, setMeals] = useState<{ id: string; name: string }[]>([]);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useError();
   const [q, setQ] = useState('');
   const [hits, setHits] = useState<FoodHit[]>([]);
   const [searching, setSearching] = useState(false);
@@ -51,11 +52,10 @@ export function Fuel({ profile }: { profile: Profile }) {
       setLog(l);
       setLunch(u);
       setMeals(m);
-      setError(null);
     } catch (e) {
       setError(friendly(e));
     }
-  }, [date]);
+  }, [date, setError]);
   useEffect(() => void load(), [load]);
 
   const find = async (e?: React.FormEvent) => {
@@ -170,7 +170,7 @@ export function Fuel({ profile }: { profile: Profile }) {
               .{' '}
               <button
                 type="button"
-                className="min-h-11 text-[var(--accent)]"
+                className="min-h-11 text-[var(--accent-text)]"
                 onClick={() => confirmLunch({ date, action: 'skipped' }).then(load)}
               >
                 Change
@@ -231,7 +231,7 @@ export function Fuel({ profile }: { profile: Profile }) {
           </GlassButton>
         </form>
         {hits.length > 0 && (
-          <ul className="grid gap-1" aria-label="Search results">
+          <ul className="grid grid-cols-[minmax(0,1fr)] gap-1" aria-label="Search results">
             {hits.map((h, i) => (
               <li key={i}>
                 <button
@@ -274,7 +274,7 @@ export function Fuel({ profile }: { profile: Profile }) {
         </form>
         {scan && <BarcodeScanner onCode={lookup} onClose={() => setScan(false)} />}
         <form
-          className="grid grid-cols-[1fr_5rem_5rem_auto] gap-2"
+          className="grid grid-cols-[minmax(0,1fr)_4.25rem_4.25rem_auto] gap-2"
           onSubmit={async (e) => {
             e.preventDefault();
             const k = Number(quick.kcal);
@@ -344,7 +344,7 @@ export function Fuel({ profile }: { profile: Profile }) {
                 <h3 className="text-sm font-medium capitalize">{s}</h3>
                 <button
                   type="button"
-                  className="min-h-11 text-xs text-[var(--accent)]"
+                  className="min-h-11 text-xs text-[var(--accent-text)]"
                   onClick={async () => {
                     const name = window.prompt('Name this meal');
                     if (name)
@@ -365,7 +365,7 @@ export function Fuel({ profile }: { profile: Profile }) {
                   Save as meal
                 </button>
               </div>
-              <ul className="grid gap-1">
+              <ul className="grid grid-cols-[minmax(0,1fr)] gap-1">
                 {items.map((e) => (
                   <li key={e.id} className="flex items-center justify-between gap-2 text-sm">
                     <span className="min-w-0 truncate">

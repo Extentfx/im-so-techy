@@ -101,7 +101,7 @@ export function Today({ profile, onEditSetup }: { profile: Profile; onEditSetup:
             <h2 className="text-xs uppercase tracking-wider text-[var(--ink-soft)]">
               Waiting for your tap
             </h2>
-            <ul className="mt-3 grid gap-3">
+            <ul className="mt-3 grid grid-cols-[minmax(0,1fr)] gap-3">
               {proposals.slice(0, 4).map((p) => (
                 <li
                   key={p.id}
@@ -143,7 +143,7 @@ export function Today({ profile, onEditSetup }: { profile: Profile; onEditSetup:
           {events === null ? (
             <p className="mt-3 text-sm text-[var(--ink-soft)]">Loading…</p>
           ) : events.length ? (
-            <ul className="mt-3 grid gap-3">
+            <ul className="mt-3 grid grid-cols-[minmax(0,1fr)] gap-3">
               {events.map((e) => (
                 <EventRow key={e.id} e={e} />
               ))}

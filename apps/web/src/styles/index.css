@@ -10,7 +10,8 @@
   --glass-fill-strong: rgb(255 255 255 / 0.18);
   --glass-border: rgb(255 255 255 / 0.18);
   --glass-hi: rgb(255 255 255 / 0.35);
-  --accent: #5b7cff;
+  --accent: #3f5bd9; /* white text on this is 5.6:1 */
+  --accent-text: #3f5bd9;
   --accent-2: #b07cff;
   --ok: #2fbf8a;
   --blur: 24px;
@@ -23,6 +24,7 @@
     --ink-soft: #a6afd0;
     --glass-fill: rgb(255 255 255 / 0.06);
     --glass-fill-strong: rgb(255 255 255 / 0.12);
+    --accent-text: #9fb0ff; /* readable on dark backgrounds */
   }
 }
 /* On light backgrounds white-on-white glass has no contrast; darken the fill slightly. */
@@ -258,4 +260,10 @@ body {
 .radial-scrim[data-open='true'] {
   opacity: 1;
   pointer-events: auto;
+}
+
+/* Buttons inside always-dark panels need a dark fill, not the light-theme glass. */
+.glass-dark .glass {
+  background: rgb(255 255 255 / 0.14);
+  color: #fff;
 }

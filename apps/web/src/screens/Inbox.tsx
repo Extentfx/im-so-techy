@@ -8,10 +8,11 @@ import {
   type DigestItem,
 } from '../lib/api';
 import { fmtWhen } from '../lib/week';
+import { useError } from '../lib/useError';
 import { GlassButton, GlassCard } from '../components/Glass';
 
 const inputCls =
-  'min-h-11 w-full rounded-xl border border-black/10 bg-white/50 px-3 text-base dark:border-white/20 dark:bg-white/10';
+  'min-h-11 w-full min-w-0 rounded-xl border border-black/10 bg-white/50 px-3 text-base dark:border-white/20 dark:bg-white/10';
 const CAT_COLOR: Record<string, string> = {
   school: '#f2a33a',
   work: '#5b7cff',
@@ -22,7 +23,7 @@ const CAT_COLOR: Record<string, string> = {
 
 export function Inbox() {
   const [items, setItems] = useState<DigestItem[]>([]);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useError();
   const [from, setFrom] = useState('');
   const [subject, setSubject] = useState('');
   const [body, setBody] = useState('');
@@ -32,11 +33,10 @@ export function Inbox() {
   const load = useCallback(async () => {
     try {
       setItems(await getDigest());
-      setError(null);
     } catch (e) {
       setError(friendly(e));
     }
-  }, []);
+  }, [setError]);
   useEffect(() => void load(), [load]);
 
   const submit = async (e: React.FormEvent) => {

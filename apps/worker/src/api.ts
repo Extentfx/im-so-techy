@@ -5,7 +5,7 @@ import { audit as auditLog, err, json, readJson, type Ctx, type Handler } from '
 import type { Env } from './env';
 import { syncSource, type FeedFetcher, type SourceRow } from './sync';
 import { ISO } from './http';
-import { isSameOrigin, normalizeFeedUrl } from './urlcheck';
+import { isSameOrigin, isServiceIngest, normalizeFeedUrl } from './urlcheck';
 
 const KINDS: readonly SourceKind[] = ['work', 'school', 'family'];
 const MAX_SOURCES = 10;
@@ -40,7 +40,8 @@ export async function handleApi(
   const method = req.method;
   const ctx: Ctx = { req, env, url, path, method, now, getFeed, fetchImpl };
 
-  if (method !== 'GET' && method !== 'HEAD' && !isSameOrigin(req)) return err(403, 'cross_origin');
+  if (method !== 'GET' && method !== 'HEAD' && !isSameOrigin(req) && !isServiceIngest(req, path))
+    return err(403, 'cross_origin');
 
   if (path === '/api/events' && method === 'GET') {
     const from = url.searchParams.get('from') ?? '';

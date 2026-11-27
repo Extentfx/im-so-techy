@@ -181,7 +181,7 @@ const STEPS: Step[] = [
     title: 'You’re set.',
     lead: 'Your answers stay on this device for now. Calendars, sleep and the rest connect in later steps, always behind your login.',
     body: (p) => (
-      <ul className="grid gap-2 text-sm text-[var(--ink-soft)]">
+      <ul className="grid grid-cols-[minmax(0,1fr)] gap-2 text-sm text-[var(--ink-soft)]">
         <li>Private by default: no third-party scripts, no tracking.</li>
         <li>Nothing is added to a calendar or a device until you approve it.</li>
         <li>

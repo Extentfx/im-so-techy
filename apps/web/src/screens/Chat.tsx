@@ -26,7 +26,7 @@ const EXAMPLES = [
   "What's on this week?",
 ];
 const inputCls =
-  'min-h-11 w-full rounded-xl border border-black/10 bg-white/50 px-3 text-base dark:border-white/20 dark:bg-white/10';
+  'min-h-11 w-full min-w-0 rounded-xl border border-black/10 bg-white/50 px-3 text-base dark:border-white/20 dark:bg-white/10';
 
 export function Chat() {
   const [msgs, setMsgs] = useState<Msg[]>([]);
@@ -38,8 +38,12 @@ export function Chat() {
   const [error, setError] = useState<string | null>(null);
   const end = useRef<HTMLDivElement>(null);
 
-  useEffect(() => void chatStatus().then(setMode, () => undefined), []);
-  useEffect(() => end.current?.scrollIntoView({ block: 'nearest' }), [msgs]);
+  useEffect(() => {
+    chatStatus().then(setMode, () => undefined);
+  }, []);
+  useEffect(() => {
+    end.current?.scrollIntoView({ block: 'nearest' });
+  }, [msgs]);
 
   const patchLast = (f: (m: Msg) => Msg) =>
     setMsgs((all) => all.map((m, i) => (i === all.length - 1 ? f(m) : m)));
@@ -123,7 +127,7 @@ export function Chat() {
             ))}
           </div>
         )}
-        <ul className="grid gap-3" aria-live="polite">
+        <ul className="grid grid-cols-[minmax(0,1fr)] gap-3" aria-live="polite">
           {msgs.map((m, mi) => (
             <li
               key={mi}
@@ -180,8 +184,8 @@ export function Chat() {
               ))}
             </li>
           ))}
-          <div ref={end} />
         </ul>
+        <div ref={end} />
         {error && (
           <p role="alert" className="text-sm text-red-500">
             {error}

@@ -1,18 +1,18 @@
 # Life Dashboard
 
 One private web app that plans the week around work, school and family, then tracks gym, food and sleep.
-Spec and roadmap: the "Personal Life Dashboard: Spec and Roadmap" doc. Build one phase per branch and stop at each gate for review.
+Spec and roadmap: the "Personal Life Dashboard: Spec and Roadmap" doc. All phases (0 to 8) are built; see `README.md` for what each page does and `SECURITY.md` for the review.
 
 ## Stack and layout
 
 - `apps/web`: Vite, React 18, TypeScript, Tailwind v4, react-three-fiber. PWA via vite-plugin-pwa.
-- `apps/worker`: one Cloudflare Worker (`/api/*`), D1 (SQLite) in `migrations/`.
-- `packages/shared`: types shared by both.
+- `apps/worker`: one Cloudflare Worker (`/api/*`), D1 (SQLite) in `migrations/`. Each feature is a route module in `src/` registered in `src/modules.ts`; tests in `test/` run the real migrations on SQLite.
+- `packages/shared`: types and pure logic shared by both (profile validation, scheduler, sleep, email reading, gym maths, time zones). New rules belong here as pure, tested functions.
 - Hosting: Cloudflare Pages + Workers, login via Cloudflare Access.
 
 ## Commands
 
-`npm run dev` · `npm run build` · `npm run typecheck` · `npm run lint` · `npm test` · `npm run format:check` · `npm run audit:deps`
+`npm run local` (whole app on localhost) · `npm run dev` · `npm run build` · `npm run typecheck` · `npm run lint` · `npm test` · `npm run format:check` · `npm run audit:deps`
 
 ## Non-negotiable rules
 
@@ -25,3 +25,6 @@ Spec and roadmap: the "Personal Life Dashboard: Spec and Roadmap" doc. Build one
 7. Scheduler logic is pure functions with unit tests.
 8. Visuals: lazy-load three.js, cap DPR at 1.5, pause when the tab is hidden, honor `prefers-reduced-motion`, keep the CSS-gradient fallback.
 9. Record choices in `DECISIONS.md`.
+10. A route that skips the Access login must be listed in `SECURITY.md` with its reason (today: only `GET /api/family/view`, token-protected). Service-token callers may reach `/api/ingest/*` only.
+11. Anything that talks to a device goes through `executeAction` in `home.ts`; anything that proposes a calendar change goes through `createProposal`. Don't add a second path.
+12. Never store message bodies, prompts or chat history. Summaries only, redacted.

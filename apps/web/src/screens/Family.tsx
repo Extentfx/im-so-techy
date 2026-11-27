@@ -63,7 +63,7 @@ export function Family() {
                 {d.toLocaleDateString([], { weekday: 'long', month: 'short', day: 'numeric' })}
               </h2>
               {list.length ? (
-                <ul className="mt-3 grid gap-3">
+                <ul className="mt-3 grid grid-cols-[minmax(0,1fr)] gap-3">
                   {list.map((e) => (
                     <EventRow key={`${e.id}-${dayKey(d)}`} e={e} />
                   ))}

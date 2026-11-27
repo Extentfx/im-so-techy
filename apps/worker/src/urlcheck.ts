@@ -62,3 +62,12 @@ export function normalizeHaUrl(input: string, allowPrivate: boolean): URL | null
   if (allowPrivate) return u;
   return u.protocol === 'https:' && isPublicHost(u.hostname) ? u : null;
 }
+
+/**
+ * Phone Shortcuts post sleep data with an Access service token and no browser headers.
+ * They are exempt from the same-origin rule for /api/ingest/* only, and only when they carry the
+ * service-token header, which a cross-site web page cannot add without a CORS preflight we never allow.
+ */
+export function isServiceIngest(req: Request, path: string): boolean {
+  return path.startsWith('/api/ingest/') && req.headers.has('cf-access-client-id');
+}

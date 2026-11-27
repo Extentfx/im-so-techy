@@ -81,7 +81,7 @@ export function Sources({
       </div>
 
       {sources.length > 0 && (
-        <ul className="grid gap-3">
+        <ul className="grid grid-cols-[minmax(0,1fr)] gap-3">
           {sources.map((s) => (
             <li key={s.id} className="flex flex-wrap items-center gap-x-3 gap-y-1">
               <span

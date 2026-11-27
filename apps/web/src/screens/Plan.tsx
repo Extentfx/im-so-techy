@@ -11,6 +11,7 @@ import {
   rangeOf,
 } from '../lib/week';
 import { EventRow } from '../components/EventRow';
+import { useError } from '../lib/useError';
 import { GlassButton, GlassCard } from '../components/Glass';
 import { ShiftAlerts } from '../components/ShiftAlerts';
 import { Sources } from './Sources';
@@ -20,7 +21,7 @@ export function Plan() {
   const [events, setEvents] = useState<CalEvent[]>([]);
   const [sources, setSources] = useState<CalendarSource[] | null>(null);
   const [alerts, setAlerts] = useState<ShiftChange[]>([]);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useError();
 
   const days = useMemo(
     () => Array.from({ length: 7 }, (_, i) => addDays(weekStart, i)),
@@ -34,12 +35,11 @@ export function Plan() {
       const [s, a] = await Promise.all([getSources(), getAlerts()]);
       setSources(s);
       setAlerts(a);
-      setError(null);
     } catch (e) {
       setError(friendly(e));
       setSources((s) => s ?? []);
     }
-  }, []);
+  }, [setError]);
 
   const loadEvents = useCallback(async () => {
     try {
@@ -48,7 +48,7 @@ export function Plan() {
     } catch (e) {
       setError(friendly(e));
     }
-  }, [weekStart]);
+  }, [weekStart, setError]);
 
   useEffect(() => void loadMeta(), [loadMeta]);
   useEffect(() => void loadEvents(), [loadEvents]);
@@ -122,10 +122,10 @@ export function Plan() {
             >
               <h2 className="text-xs uppercase tracking-wider text-[var(--ink-soft)]">
                 {d.toLocaleDateString([], { weekday: 'long', month: 'short', day: 'numeric' })}
-                {isToday && <span className="ml-2 text-[var(--accent)]">today</span>}
+                {isToday && <span className="ml-2 text-[var(--accent-text)]">today</span>}
               </h2>
               {list.length ? (
-                <ul className="mt-3 grid gap-3">
+                <ul className="mt-3 grid grid-cols-[minmax(0,1fr)] gap-3">
                   {list.map((e) => (
                     <EventRow key={`${e.id}-${dayKey(d)}`} e={e} />
                   ))}

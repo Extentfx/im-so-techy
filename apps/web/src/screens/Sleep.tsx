@@ -9,10 +9,11 @@ import {
   sleepWake,
   type SleepSummary,
 } from '../lib/api';
+import { useError } from '../lib/useError';
 import { GlassButton, GlassCard } from '../components/Glass';
 
 const inputCls =
-  'min-h-11 w-full rounded-xl border border-black/10 bg-white/50 px-3 text-base dark:border-white/20 dark:bg-white/10';
+  'min-h-11 w-full min-w-0 rounded-xl border border-black/10 bg-white/50 px-3 text-base dark:border-white/20 dark:bg-white/10';
 const hm = (min: number) => `${Math.floor(min / 60)}h ${String(min % 60).padStart(2, '0')}m`;
 const clock = (iso: string) =>
   new Date(iso).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
@@ -20,18 +21,17 @@ const toIso = (local: string) => new Date(local).toISOString().replace(/\.\d{3}Z
 
 export function Sleep({ profile }: { profile: Profile }) {
   const [s, setS] = useState<SleepSummary | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useError();
   const [bed, setBed] = useState('');
   const [wake, setWake] = useState('');
 
   const load = useCallback(async () => {
     try {
       setS(await getSleep());
-      setError(null);
     } catch (e) {
       setError(friendly(e));
     }
-  }, []);
+  }, [setError]);
   useEffect(() => void load(), [load]);
 
   const act = async (fn: () => Promise<unknown>) => {
@@ -127,7 +127,7 @@ export function Sleep({ profile }: { profile: Profile }) {
               </div>
             ))}
           </div>
-          <ul className="mt-3 grid gap-1 text-sm">
+          <ul className="mt-3 grid grid-cols-[minmax(0,1fr)] gap-1 text-sm">
             {(s?.nights ?? []).slice(0, 7).map((n) => (
               <li key={n.date} className="flex items-center justify-between">
                 <span>
@@ -156,7 +156,7 @@ export function Sleep({ profile }: { profile: Profile }) {
 
       <GlassCard aria-label="Add a night" className="grid gap-3">
         <h2 className="text-xs uppercase tracking-wider text-[var(--ink-soft)]">Add a night</h2>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid gap-2 sm:grid-cols-2">
           <label className="grid gap-1 text-xs text-[var(--ink-soft)]">
             Went to bed
             <input

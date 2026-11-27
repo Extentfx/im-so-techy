@@ -16,13 +16,17 @@
     "format:check": "prettier --check .",
     "test": "npm run test --workspaces --if-present",
     "audit:deps": "npm audit --audit-level=high",
-    "local": "node scripts/local.mjs"
+    "loadcheck": "node scripts/loadcheck.mjs",
+    "local": "node scripts/local.mjs",
+    "e2e": "node e2e/run.cjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.15.0",
+    "axe-core": "^4.14.1",
     "eslint": "^9.15.0",
     "eslint-plugin-react-hooks": "^5.0.0",
     "globals": "^15.12.0",
+    "playwright": "^1.65.1",
     "prettier": "^3.3.3",
     "typescript": "~5.6.3",
     "typescript-eslint": "^8.15.0"
