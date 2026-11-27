@@ -11,6 +11,16 @@ export interface Env {
   BACKUP_KEY?: string;
   /** Optional R2 bucket for nightly encrypted backups. */
   BACKUPS?: R2Bucket;
+  /** Google sign-in (Gmail read-only + Calendar). Create an OAuth client at console.cloud.google.com. */
+  GOOGLE_CLIENT_ID?: string;
+  GOOGLE_CLIENT_SECRET?: string;
+  /** Microsoft sign-in (Outlook mail read-only + Calendar). Register an app at entra.microsoft.com. */
+  MS_CLIENT_ID?: string;
+  MS_CLIENT_SECRET?: string;
+  /** Microsoft tenant: "common" (default) allows personal and work accounts. */
+  MS_TENANT?: string;
+  /** Public address of the app, for OAuth redirects. Defaults to the address the request came to. */
+  PUBLIC_URL?: string;
   /** Optional. Enables Claude for email reading and chat. Stored as a Worker secret, never in the browser. */
   ANTHROPIC_API_KEY?: string;
   /** Optional model override for chat (default: the small model). */

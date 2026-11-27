@@ -2,7 +2,9 @@ import type { SourceKind } from '@life/shared';
 import { decrypt } from './crypto';
 import { diffEvents, type Comparable } from './diff';
 import type { Env } from './env';
-import { parseIcs } from './ics';
+import { parseIcs, type ParsedEvent } from './ics';
+import { fetchCalendarEvents } from './providers';
+import { friendlyError, withToken } from './tokens';
 import { notify } from './admin';
 import { replan } from './plan';
 import { normalizeFeedUrl } from './urlcheck';
@@ -17,9 +19,12 @@ export interface SourceRow {
   id: string;
   name: string;
   kind: SourceKind;
-  url_enc: string;
+  url_enc: string | null;
   host: string;
   last_synced_at: string | null;
+  type: 'ics' | 'google' | 'microsoft';
+  connection_id: string | null;
+  remote_id: string | null;
 }
 
 export type FeedFetcher = (url: URL) => Promise<string>;
@@ -78,6 +83,37 @@ export interface SyncResult {
   warnings: string[];
 }
 
+/** Events for one calendar source: from its ICS link, or from the connected Google or Microsoft account. */
+async function loadEvents(
+  env: Env,
+  src: SourceRow,
+  now: number,
+  getFeed: FeedFetcher,
+  fetchImpl: typeof fetch,
+): Promise<{ events: ParsedEvent[]; warnings: string[] }> {
+  const from = now - WINDOW_PAST_DAYS * DAY;
+  const to = now + WINDOW_FUTURE_DAYS * DAY;
+  if (src.type === 'google' || src.type === 'microsoft') {
+    if (!src.connection_id || !src.remote_id) throw new Error('connection_missing');
+    const events = await withToken(env, fetchImpl, src.connection_id, now, (token) =>
+      fetchCalendarEvents(
+        fetchImpl,
+        src.type as 'google' | 'microsoft',
+        token,
+        src.remote_id!,
+        from,
+        to,
+      ),
+    );
+    return { events, warnings: [] };
+  }
+  const url = normalizeFeedUrl(await decrypt(src.url_enc ?? '', env.TOKEN_KEY));
+  if (!url) throw new Error('Saved feed URL is no longer allowed');
+  const text = await getFeed(url);
+  if (!text.includes('BEGIN:VCALENDAR')) throw new Error('That link is not a calendar feed');
+  return parseIcs(text, from, to);
+}
+
 export async function syncSource(
   env: Env,
   src: SourceRow,
@@ -86,16 +122,7 @@ export async function syncSource(
   fetchImpl: typeof fetch = (i, init) => fetch(i, init),
 ): Promise<SyncResult> {
   try {
-    const url = normalizeFeedUrl(await decrypt(src.url_enc, env.TOKEN_KEY));
-    if (!url) throw new Error('Saved feed URL is no longer allowed');
-    const text = await getFeed(url);
-    if (!text.includes('BEGIN:VCALENDAR')) throw new Error('That link is not a calendar feed');
-
-    const { events, warnings } = parseIcs(
-      text,
-      now - WINDOW_PAST_DAYS * DAY,
-      now + WINDOW_FUTURE_DAYS * DAY,
-    );
+    const { events, warnings } = await loadEvents(env, src, now, getFeed, fetchImpl);
     const next = events.slice(0, MAX_EVENTS);
     // Ids are scoped by source and de-duplicated, so a feed repeating a UID can't collide.
     const seen = new Set<string>();
@@ -166,7 +193,7 @@ export async function syncSource(
     }
     return { events: rows.length, changes: changes.length, warnings };
   } catch (err) {
-    const msg = err instanceof Error ? err.message.slice(0, 200) : 'Sync failed';
+    const msg = friendlyError(err);
     await env.DB.prepare('UPDATE calendar_sources SET last_error = ? WHERE id = ?')
       .bind(msg, src.id)
       .run();
@@ -180,7 +207,7 @@ export async function syncAll(
   getFeed: FeedFetcher = fetchFeed,
 ): Promise<void> {
   const { results } = await env.DB.prepare(
-    'SELECT id, name, kind, url_enc, host, last_synced_at FROM calendar_sources',
+    'SELECT id, name, kind, url_enc, host, last_synced_at, type, connection_id, remote_id FROM calendar_sources',
   ).all<SourceRow>();
   for (const s of results ?? []) {
     try {

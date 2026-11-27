@@ -36,6 +36,7 @@ export const TABS = [
   'home',
   'inbox',
   'chat',
+  'connect',
   'settings',
 ] as const;
 export type TabId = (typeof TABS)[number];
@@ -62,6 +63,8 @@ export interface CalendarSource {
   id: string;
   name: string;
   kind: SourceKind;
+  /** Where it comes from: a calendar link, or a connected Google or Microsoft account. */
+  type: 'ics' | 'google' | 'microsoft';
   host: string;
   lastSyncedAt: string | null;
   lastError: string | null;

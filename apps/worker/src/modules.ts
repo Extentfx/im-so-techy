@@ -1,5 +1,6 @@
 import { admin } from './admin';
 import { chat } from './chat';
+import { connections } from './connections';
 import { email } from './email';
 import { food } from './food';
 import { gym } from './gym';
@@ -9,4 +10,14 @@ import { plan } from './plan';
 import { sleep } from './sleep';
 
 /** Route modules added by each phase, in order. The calendar and foundation routes live in api.ts. */
-export const allHandlers: Handler[] = [gym, plan, food, sleep, email, chat, home, admin];
+export const allHandlers: Handler[] = [
+  gym,
+  plan,
+  food,
+  sleep,
+  email,
+  chat,
+  home,
+  admin,
+  connections,
+];

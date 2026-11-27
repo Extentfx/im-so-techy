@@ -2,6 +2,7 @@ import type { HealthResponse } from '@life/shared';
 import { resolveUser } from './auth';
 import { runNightlyBackup, runReminders, familyView } from './admin';
 import { handleApi } from './api';
+import { runMailChecks } from './connections';
 import type { Env } from './env';
 import { allHandlers } from './modules';
 import { runRoutines } from './home';
@@ -51,6 +52,7 @@ export default {
           now: Date.now,
           fetchImpl: (i: RequestInfo | URL, init?: RequestInit) => fetch(i, init),
         };
+        await runMailChecks(c).catch(() => 0);
         await runRoutines(c).catch(() => 0);
         await runReminders(c).catch(() => 0);
         await runNightlyBackup(env, Date.now()).catch(() => false);

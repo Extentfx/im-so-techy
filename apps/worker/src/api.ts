@@ -21,6 +21,7 @@ const toSource = (r: SourceDb): CalendarSource => ({
   id: r.id,
   name: r.name,
   kind: r.kind,
+  type: r.type,
   host: r.host,
   lastSyncedAt: r.last_synced_at,
   lastError: r.last_error,
@@ -87,7 +88,7 @@ export async function handleApi(
 
   if (path === '/api/sources' && method === 'GET') {
     const { results } = await env.DB.prepare(
-      'SELECT id, name, kind, url_enc, host, last_synced_at, last_error FROM calendar_sources ORDER BY created_at',
+      'SELECT id, name, kind, url_enc, host, last_synced_at, last_error, type, connection_id, remote_id FROM calendar_sources ORDER BY created_at',
     ).all<SourceDb>();
     return json({ sources: (results ?? []).map(toSource) });
   }
@@ -115,6 +116,9 @@ export async function handleApi(
       host: feed.host,
       last_synced_at: null,
       last_error: null,
+      type: 'ics',
+      connection_id: null,
+      remote_id: null,
     };
     await env.DB.prepare(
       'INSERT INTO calendar_sources (id, name, kind, url_enc, host) VALUES (?,?,?,?,?)',
@@ -125,7 +129,7 @@ export async function handleApi(
     try {
       const r = await syncSource(env, row, now(), getFeed, fetchImpl);
       const fresh = await env.DB.prepare(
-        'SELECT id, name, kind, url_enc, host, last_synced_at, last_error FROM calendar_sources WHERE id = ?',
+        'SELECT id, name, kind, url_enc, host, last_synced_at, last_error, type, connection_id, remote_id FROM calendar_sources WHERE id = ?',
       )
         .bind(id)
         .first<SourceDb>();
@@ -133,7 +137,7 @@ export async function handleApi(
     } catch (e) {
       // Keep the source so the user can see the error and retry; the message never contains the URL.
       const fresh = await env.DB.prepare(
-        'SELECT id, name, kind, url_enc, host, last_synced_at, last_error FROM calendar_sources WHERE id = ?',
+        'SELECT id, name, kind, url_enc, host, last_synced_at, last_error, type, connection_id, remote_id FROM calendar_sources WHERE id = ?',
       )
         .bind(id)
         .first<SourceDb>();
@@ -148,7 +152,7 @@ export async function handleApi(
   if (m) {
     const id = m[1]!;
     const src = await env.DB.prepare(
-      'SELECT id, name, kind, url_enc, host, last_synced_at, last_error FROM calendar_sources WHERE id = ?',
+      'SELECT id, name, kind, url_enc, host, last_synced_at, last_error, type, connection_id, remote_id FROM calendar_sources WHERE id = ?',
     )
       .bind(id)
       .first<SourceDb>();

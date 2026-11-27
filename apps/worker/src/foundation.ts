@@ -1,3 +1,4 @@
+import { mirrorApproved, unmirror } from './mirror';
 import { sanitizeProfile, type CalEvent, type Profile } from '@life/shared';
 import {
   audit,
@@ -187,13 +188,31 @@ export const foundation: Handler = async (c) => {
       `dashboard:${pl.title}@${pl.start}`,
       'approved by user',
     );
+    // If you switched on the Google mirror, a copy goes into your "Life Dashboard" Google calendar.
+    await mirrorApproved(
+      c,
+      eventId,
+      {
+        title: pl.title,
+        start: pl.start,
+        end: pl.end,
+        allDay: !!pl.allDay,
+        location: pl.location ?? null,
+      },
+      (await loadProfile(c)).timezone,
+      p.source,
+    );
     return json({ ok: true, eventId });
   }
 
   const d = /^\/api\/dashboard-events\/([0-9a-f-]{36})$/.exec(path);
   if (d && method === 'DELETE') {
+    const old = await env.DB.prepare('SELECT remote_id FROM dashboard_events WHERE id = ?')
+      .bind(d[1])
+      .first<{ remote_id: string | null }>();
     const r = await env.DB.prepare('DELETE FROM dashboard_events WHERE id = ?').bind(d[1]).run();
     if (!r.meta.changes) return err(404, 'not_found');
+    await unmirror(c, old?.remote_id ?? null);
     await audit(env, 'user', 'calendar.delete', `dashboard:${d[1]}`, 'ok');
     return json({ ok: true });
   }

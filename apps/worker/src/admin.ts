@@ -26,6 +26,8 @@ import { suggestionFor } from './bedtime';
 export const BACKUP_TABLES = [
   'settings',
   'calendar_sources',
+  'connections',
+  'email_seen',
   'dashboard_events',
   'proposals',
   'audit_log',
@@ -47,8 +49,11 @@ export const BACKUP_TABLES = [
 type Table = (typeof BACKUP_TABLES)[number];
 
 /** Columns that hold encrypted secrets. They go into encrypted backups but never into plain exports. */
-const SECRET_COLUMNS: Partial<Record<Table, string[]>> = { calendar_sources: ['url_enc'] };
-const SECRET_SETTING_KEYS = new Set(['ha', 'ntfy']);
+const SECRET_COLUMNS: Partial<Record<Table, string[]>> = {
+  calendar_sources: ['url_enc'],
+  connections: ['access_enc', 'refresh_enc'],
+};
+const SECRET_SETTING_KEYS = new Set(['ha', 'ntfy', 'mirror', 'mirror_calendar']);
 
 type Row = Record<string, unknown>;
 
@@ -350,8 +355,12 @@ export const admin: Handler = async (c) => {
       (await env.DB.prepare('SELECT COUNT(*) AS n FROM calendar_sources').first<{ n: number }>())
         ?.n ?? 0;
     await env.DB.batch([
-      env.DB.prepare("DELETE FROM settings WHERE key IN ('ha','ntfy','notify_bedtime')"),
+      env.DB.prepare(
+        "DELETE FROM settings WHERE key IN ('ha','ntfy','notify_bedtime','mirror','mirror_calendar')",
+      ),
       env.DB.prepare('DELETE FROM calendar_sources'), // feed addresses go; events and alerts cascade
+      env.DB.prepare('DELETE FROM connections'), // Google and Microsoft sign-ins go; email_seen cascades
+      env.DB.prepare('DELETE FROM oauth_states'),
       env.DB.prepare('DELETE FROM family_links'),
       env.DB.prepare('DELETE FROM confirmations'),
     ]);

@@ -59,60 +59,95 @@ interface DigestRow {
   proposal_ids: string;
 }
 
+export interface Ingested {
+  id: string;
+  category: EmailCategory;
+  summary: string;
+  proposals: number;
+  usedClaude: boolean;
+}
+
+/**
+ * The one way any email is read, whether pasted or fetched from a connected account: label it, summarise it
+ * (redacted), and turn dates into pending proposals. The body is used here and never stored.
+ * `maxPendingProposals` stops an automatic check from flooding you with suggestions.
+ */
+export async function ingestMessage(
+  c: Pick<Ctx, 'env' | 'now' | 'fetchImpl'>,
+  m: { from: string; subject: string; body: string },
+  opts: { maxPendingProposals?: number } = {},
+): Promise<Ingested> {
+  const { env } = c;
+  const body = m.body.slice(0, MAX_BODY);
+  const subject = m.subject.trim().slice(0, 200) || '(no subject)';
+  const from = m.from.trim().slice(0, 200) || 'unknown sender';
+  const profile = await loadProfile(c);
+  const msg = { from, subject, body };
+  const rules = { category: categorize(msg), summary: summarize(body) };
+  const label = (await llmLabel(c, msg)) ?? rules;
+
+  // Dates always come from the deterministic reader, never from model output.
+  let room = Infinity;
+  if (opts.maxPendingProposals !== undefined) {
+    const pending =
+      (
+        await env.DB.prepare(
+          "SELECT COUNT(*) AS n FROM proposals WHERE source = 'email' AND status = 'pending'",
+        ).first<{ n: number }>()
+      )?.n ?? 0;
+    room = Math.max(0, opts.maxPendingProposals - pending);
+  }
+  const dates = extractDates(`${subject}. ${body}`, c.now(), profile.timezone, Math.min(3, room));
+  const proposalIds: string[] = [];
+  for (const d of dates) {
+    const ev = draftEvent(subject, d, profile.timezone);
+    proposalIds.push(
+      await createProposal(env, {
+        source: 'email',
+        kind: 'calendar_event',
+        summary: `From email "${subject.slice(0, 60)}": ${d.context}`.slice(0, 200),
+        payload: { title: ev.title, start: ev.start, end: ev.end, allDay: ev.allDay },
+      }),
+    );
+  }
+  const id = newId();
+  const summary = label.summary || rules.summary;
+  await env.DB.prepare(
+    'INSERT INTO email_digest (id, received_at, sender, subject, category, summary, status, proposal_ids) VALUES (?,?,?,?,?,?,?,?)',
+  )
+    .bind(
+      id,
+      isoNoMs(c.now()),
+      from.slice(0, 120),
+      subject.slice(0, 120),
+      label.category,
+      summary,
+      proposalIds.length ? 'proposed' : 'new',
+      JSON.stringify(proposalIds),
+    )
+    .run();
+  return {
+    id,
+    category: label.category,
+    summary,
+    proposals: proposalIds.length,
+    usedClaude: label !== rules,
+  };
+}
+
 export const email: Handler = async (c) => {
   const { env, path, method, req } = c;
 
   if (path === '/api/email/ingest' && method === 'POST') {
     const b = await readJson(req, 60_000);
-    const body = typeof b?.body === 'string' ? b.body.slice(0, MAX_BODY) : '';
-    const subject = str(b?.subject, 200) ?? '(no subject)';
-    const from = str(b?.from, 200) ?? 'unknown sender';
+    const body = typeof b?.body === 'string' ? b.body : '';
     if (!body.trim()) return err(400, 'body_required');
-
-    const profile = await loadProfile(c);
-    const msg = { from, subject, body };
-    const rules = { category: categorize(msg), summary: summarize(body) };
-    const label = (await llmLabel(c, msg)) ?? rules;
-
-    // Dates always come from the deterministic reader, never from model output.
-    const dates = extractDates(`${subject}. ${body}`, c.now(), profile.timezone, 3);
-    const proposalIds: string[] = [];
-    for (const d of dates) {
-      const ev = draftEvent(subject, d, profile.timezone);
-      proposalIds.push(
-        await createProposal(env, {
-          source: 'email',
-          kind: 'calendar_event',
-          summary: `From email "${subject.slice(0, 60)}": ${d.context}`.slice(0, 200),
-          payload: { title: ev.title, start: ev.start, end: ev.end, allDay: ev.allDay },
-        }),
-      );
-    }
-    const id = newId();
-    await env.DB.prepare(
-      'INSERT INTO email_digest (id, received_at, sender, subject, category, summary, status, proposal_ids) VALUES (?,?,?,?,?,?,?,?)',
-    )
-      .bind(
-        id,
-        isoNoMs(c.now()),
-        from.slice(0, 120),
-        subject.slice(0, 120),
-        label.category,
-        label.summary || rules.summary,
-        proposalIds.length ? 'proposed' : 'new',
-        JSON.stringify(proposalIds),
-      )
-      .run();
-    return json(
-      {
-        id,
-        category: label.category,
-        summary: label.summary || rules.summary,
-        proposals: proposalIds.length,
-        usedClaude: label !== rules,
-      },
-      201,
-    );
+    const r = await ingestMessage(c, {
+      from: str(b?.from, 200) ?? '',
+      subject: str(b?.subject, 200) ?? '',
+      body,
+    });
+    return json(r, 201);
   }
 
   if (path === '/api/email/digest' && method === 'GET') {
