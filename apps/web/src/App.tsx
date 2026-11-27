@@ -6,6 +6,7 @@ import { RadialNav } from './components/RadialNav';
 import { getProfile, putProfile } from './lib/api';
 import { loadLocalProfile, saveLocalProfile } from './lib/profile';
 import { Chat } from './screens/Chat';
+import { Connections } from './screens/Connections';
 import { Fuel } from './screens/Fuel';
 import { Home } from './screens/Home';
 import { Inbox } from './screens/Inbox';
@@ -23,10 +24,36 @@ export function App() {
   return <Dashboard />;
 }
 
+const CONNECT_ERRORS: Record<string, string> = {
+  invalid_state: 'That sign-in link expired. Please try again.',
+  denied: 'Sign-in was cancelled, so nothing was connected.',
+  failed: 'Sign-in did not complete. Please try again.',
+  no_refresh_token:
+    'The provider did not grant long-term access. Remove this app in your account permissions, then connect again.',
+};
+
+/** Reads the ?connected= or ?connect_error= left by the provider's redirect. Pure, so React may call it twice. */
+function readConnectResult(): { ok: boolean; text: string } | null {
+  const q = new URLSearchParams(window.location.search);
+  const ok = q.get('connected');
+  const bad = q.get('connect_error');
+  if (ok)
+    return {
+      ok: true,
+      text: `${ok === 'google' ? 'Google' : 'Microsoft'} connected. Choose what to import below.`,
+    };
+  if (bad) return { ok: false, text: CONNECT_ERRORS[bad] ?? 'Sign-in did not complete.' };
+  return null;
+}
+
 function Dashboard() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [editing, setEditing] = useState(false);
-  const [tab, setTab] = useState<TabId>('today');
+  const [connectResult] = useState(readConnectResult);
+  const [tab, setTab] = useState<TabId>(connectResult ? 'connect' : 'today');
+  useEffect(() => {
+    if (connectResult) window.history.replaceState({}, '', '/');
+  }, [connectResult]);
 
   // The server is the source of truth. A browser copy is the fallback, and seeds the server once.
   useEffect(() => {
@@ -68,6 +95,8 @@ function Dashboard() {
           setEditing(false);
         }}
         onCancel={profile.completed ? () => setEditing(false) : undefined}
+        startAt={connectResult ? 'connect' : undefined}
+        notice={connectResult}
       />
     );
   }
@@ -93,6 +122,8 @@ function Dashboard() {
             <Home />
           ) : tab === 'chat' ? (
             <Chat />
+          ) : tab === 'connect' ? (
+            <Connections onNavigate={setTab} notice={connectResult} />
           ) : (
             <Settings profile={profile} onSave={save} onRedoSetup={() => setEditing(true)} />
           )}

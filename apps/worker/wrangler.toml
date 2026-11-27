@@ -15,6 +15,10 @@ ALLOWED_EMAIL = ""        # the single owner
 ALLOWED_SERVICE_TOKENS = ""
 # Optional: daily Claude spend cap in US dollars (chat stops and falls back to built-in answers).
 CHAT_DAILY_CAP_USD = "1"
+# The public address of the app, so sign-in redirects are exact, e.g. "https://life.example.com".
+PUBLIC_URL = ""
+# Microsoft tenant: "common" allows personal and work accounts.
+MS_TENANT = "common"
 
 # Every 15 minutes: refresh calendar feeds, re-plan, run enabled home routines and bedtime
 # reminders, and (once a day) store an encrypted backup if R2 is bound.
@@ -24,6 +28,8 @@ crons = ["*/15 * * * *"]
 # Secrets (never in this file). Each: `npx wrangler secret put NAME`
 #   TOKEN_KEY          required. `openssl rand -base64 32`. Encrypts calendar links, the Home Assistant token and backups.
 #   ANTHROPIC_API_KEY  optional. Turns on Claude for chat and email labelling.
+#   GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET   optional. Gmail (read-only) and Google Calendar sign-in (see the README).
+#   MS_CLIENT_ID / MS_CLIENT_SECRET           optional. Outlook mail (read-only) and calendar sign-in.
 #   FDC_API_KEY        optional. A free USDA FoodData Central key (otherwise a shared, rate-limited demo key is used).
 #   BACKUP_KEY         optional. A separate key for backups (defaults to TOKEN_KEY).
 

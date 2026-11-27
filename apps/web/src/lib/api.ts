@@ -14,6 +14,13 @@ const FRIENDLY: Record<string, string> = {
   name_required: 'Give the calendar a short name.',
   too_many_sources: 'You have reached the limit of 10 calendars.',
   bad_kind: 'Pick work, school or family.',
+  provider_not_configured:
+    'This server is not set up for that sign-in yet. See the steps on this page.',
+  calendar_not_found: 'That calendar was not found in the account.',
+  already_added: 'That calendar is already added.',
+  email_access_not_granted: 'Email access was not granted. Reconnect and tick Email.',
+  calendar_access_not_granted: 'Calendar access was not granted. Reconnect and tick Calendar.',
+  needs_google_calendar_access: 'This needs a Google account connected with Calendar access.',
   cross_origin: 'Request blocked. Reload the page and try again.',
 };
 export const friendly = (e: unknown): string => {
@@ -271,3 +278,58 @@ export const getDigest = () =>
 export const dismissEmail = (id: string) => call<{ ok: true }>('POST', `/api/email/${id}/dismiss`);
 export const getEmailSummary = () =>
   call<{ counts: Record<string, number>; pendingProposals: number }>('GET', '/api/email/summary');
+
+/* ---------- Connections ---------- */
+export type Provider = 'google' | 'microsoft';
+export type Feature = 'mail' | 'calendar';
+export interface ProviderInfo {
+  provider: Provider;
+  label: string;
+  configured: boolean;
+  redirectUri: string;
+}
+export interface ConnectorStatus {
+  providers: ProviderInfo[];
+  server: { claude: boolean; usdaKey: boolean; backups: boolean; serviceToken: boolean };
+  calendarLinks: number;
+  home: boolean;
+  notifications: boolean;
+}
+export interface Connection {
+  id: string;
+  provider: Provider;
+  account: string;
+  features: Feature[];
+  status: 'ok' | 'needs_reconnect';
+  error: string | null;
+  mailEnabled: boolean;
+  mailLastChecked: string | null;
+  mailError: string | null;
+}
+export interface RemoteCalendar {
+  id: string;
+  name: string;
+  added: boolean;
+}
+export const getConnectors = () => call<ConnectorStatus>('GET', '/api/connectors');
+export const getConnections = () =>
+  call<{ connections: Connection[]; mirror: string | null }>('GET', '/api/connections');
+export const startOAuth = (provider: Provider, features: Feature[]) =>
+  call<{ url: string }>('POST', '/api/oauth/start', { provider, features });
+export const setMailAuto = (id: string, enabled: boolean) =>
+  call<{ ok: true }>('POST', `/api/connections/${id}/mail`, { enabled });
+export const checkMailNow = (id: string) =>
+  call<{ processed: number; proposals: number }>('POST', `/api/connections/${id}/mail/check`);
+export const listRemoteCalendars = (id: string) =>
+  call<{ calendars: RemoteCalendar[] }>('GET', `/api/connections/${id}/calendars`).then(
+    (r) => r.calendars ?? [],
+  );
+export const addRemoteCalendar = (
+  id: string,
+  b: { remoteId: string; name: string; kind: 'work' | 'school' | 'family' },
+) =>
+  call<{ source: CalendarSource; error?: string }>('POST', `/api/connections/${id}/calendars`, b);
+export const setMirror = (id: string, enabled: boolean) =>
+  call<{ ok: true }>('POST', `/api/connections/${id}/mirror`, { enabled });
+export const disconnectAccount = (id: string) =>
+  call<{ ok: true }>('DELETE', `/api/connections/${id}`);

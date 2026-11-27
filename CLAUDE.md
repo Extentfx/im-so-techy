@@ -28,3 +28,5 @@ Spec and roadmap: the "Personal Life Dashboard: Spec and Roadmap" doc. All phase
 10. A route that skips the Access login must be listed in `SECURITY.md` with its reason (today: only `GET /api/family/view`, token-protected). Service-token callers may reach `/api/ingest/*` only.
 11. Anything that talks to a device goes through `executeAction` in `home.ts`; anything that proposes a calendar change goes through `createProposal`. Don't add a second path.
 12. Never store message bodies, prompts or chat history. Summaries only, redacted.
+13. Account tokens are read and refreshed only through `tokens.ts` (`withToken`). Mail access stays read-only: no scope that can send, modify or delete, and no provider call other than GET (the one exception is creating and deleting events in the app-created Google calendar, after approval).
+14. Every email, pasted or fetched, goes through `ingestMessage` in `email.ts`. Don't add a second path.

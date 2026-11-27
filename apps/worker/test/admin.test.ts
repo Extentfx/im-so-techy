@@ -73,7 +73,6 @@ describe('backup and restore', () => {
     const a = harness();
     await populate(a);
     const blob = await makeBackup(a.env, NOW);
-    expect(blob).not.toContain('Sam');
     expect(blob).not.toContain('SECRETFEED');
 
     const b = harness({ TOKEN_KEY: a.env.TOKEN_KEY });

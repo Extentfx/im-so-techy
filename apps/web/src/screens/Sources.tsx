@@ -95,7 +95,10 @@ export function Sources({
                   <span className="font-normal text-[var(--ink-soft)]">· {KIND_LABEL[s.kind]}</span>
                 </p>
                 <p className="truncate text-xs text-[var(--ink-soft)]">
-                  {s.host} · synced {ago(s.lastSyncedAt)}
+                  {s.type === 'ics'
+                    ? s.host
+                    : `${s.type === 'google' ? 'Google' : 'Microsoft'} account`}{' '}
+                  · synced {ago(s.lastSyncedAt)}
                 </p>
                 {s.lastError && <p className="text-xs text-red-300">{s.lastError}</p>}
               </div>

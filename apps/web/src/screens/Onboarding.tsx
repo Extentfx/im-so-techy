@@ -2,7 +2,10 @@ import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'rea
 import type { Profile } from '@life/shared';
 import { Scenery } from '../components/Scenery';
 import { Choice, Multi, TextField } from '../components/Fields';
+import { Connectors } from '../components/Connectors';
 import { GlassButton } from '../components/Glass';
+import { putProfile } from '../lib/api';
+import { saveLocalProfile } from '../lib/profile';
 
 interface Step {
   id: string;
@@ -10,7 +13,13 @@ interface Step {
   title: string;
   lead: string;
   valid?: (p: Profile) => boolean;
-  body: (p: Profile, set: (patch: Partial<Profile>) => void) => ReactNode;
+  body: (p: Profile, set: (patch: Partial<Profile>) => void, ctx: StepContext) => ReactNode;
+}
+
+/** What a step may use beyond the answers: saving a draft before leaving for another site, and a message to show. */
+interface StepContext {
+  saveDraft: () => Promise<void>;
+  notice: { ok: boolean; text: string } | null;
 }
 
 const STEPS: Step[] = [
@@ -176,6 +185,13 @@ const STEPS: Step[] = [
     ),
   },
   {
+    id: 'connect',
+    scene: 'lake',
+    title: 'Connect your accounts',
+    lead: 'Optional, and you can do it any time from the Connect page. Connected accounts are read-only: the app reads your email and calendars, and anything it wants to add waits for your tap.',
+    body: (_p, _set, ctx) => <Connectors beforeRedirect={ctx.saveDraft} notice={ctx.notice} />,
+  },
+  {
     id: 'finish',
     scene: 'dawn',
     title: 'You’re set.',
@@ -196,18 +212,35 @@ export function Onboarding({
   initial,
   onDone,
   onCancel,
+  startAt,
+  notice = null,
 }: {
   initial: Profile;
   onDone: (p: Profile) => void;
   onCancel?: () => void;
+  /** Step id to open first, used when returning from Google or Microsoft sign-in. */
+  startAt?: string;
+  notice?: { ok: boolean; text: string } | null;
 }) {
-  const [step, setStep] = useState(0);
+  const [step, setStep] = useState(() =>
+    Math.max(
+      0,
+      STEPS.findIndex((x) => x.id === startAt),
+    ),
+  );
   const [profile, setProfile] = useState<Profile>(initial);
   const heading = useRef<HTMLHeadingElement>(null);
   const s = STEPS[step]!;
   const last = step === STEPS.length - 1;
 
   useEffect(() => heading.current?.focus(), [step]);
+
+  // Going to Google or Microsoft leaves this page, so keep the answers so far and pick up where you left off.
+  const saveDraft = async () => {
+    const draft = { ...profile, completed: false };
+    saveLocalProfile(draft);
+    await putProfile(draft).catch(() => undefined);
+  };
 
   const next = (e: FormEvent) => {
     e.preventDefault();
@@ -257,7 +290,10 @@ export function Onboarding({
           </div>
 
           <div className="grid gap-5">
-            {s.body(profile, (patch) => setProfile((p) => ({ ...p, ...patch })))}
+            {s.body(profile, (patch) => setProfile((p) => ({ ...p, ...patch })), {
+              saveDraft,
+              notice,
+            })}
           </div>
 
           <div className="flex items-center justify-between gap-3">

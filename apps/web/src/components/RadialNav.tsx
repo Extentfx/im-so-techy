@@ -21,6 +21,7 @@ const LABEL: Record<TabId, string> = {
   home: 'Home',
   inbox: 'Inbox',
   chat: 'Chat',
+  connect: 'Connect',
   settings: 'You',
 };
 
@@ -38,6 +39,7 @@ const ICON: Record<TabId, ReactNode> = {
   home: <path d="M4 11l8-7 8 7v9H4zM10 20v-6h4v6" />,
   inbox: <path d="M3 13l3-8h12l3 8v6H3zM3 13h5l1 3h6l1-3h5" />,
   chat: <path d="M4 5h16v11H9l-5 4zM8 9h8M8 12h5" />,
+  connect: <path d="M9 7V3M15 7V3M7 7h10v4a5 5 0 0 1-10 0zM12 16v5" />,
   settings: <path d="M4 7h10M18 7h2M4 17h2M10 17h10M14 4v6M6 14v6" />,
 };
 

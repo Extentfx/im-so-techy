@@ -100,9 +100,9 @@ const ha = http.createServer((req, res) => {
     await p.keyboard.press('Enter');
     await p.waitForTimeout(900);
   };
-  const scan = async (name) => {
-    await p.addScriptTag({ content: AXE });
-    const r = await p.evaluate(async () => {
+  const scan = async (name, page = p) => {
+    await page.addScriptTag({ content: AXE });
+    const r = await page.evaluate(async () => {
       const x = await window.axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa'] });
       return x.violations.map((v) => ({
         id: v.id,
@@ -116,7 +116,7 @@ const ha = http.createServer((req, res) => {
   };
 
   // 1 ---------------------------------------------------------------- onboarding
-  await step('Onboarding: six steps, then Today greets by name', async () => {
+  await step('Onboarding: seven steps (including Connect), then Today greets by name', async () => {
     await p.goto(BASE + '/');
     await p.waitForTimeout(1200);
     await p.fill('input[placeholder="Your first name"]', 'Sam');
@@ -132,6 +132,16 @@ const ha = http.createServer((req, res) => {
       await p.locator('button[type=submit]').click();
       await p.waitForTimeout(500);
     }
+    ok(
+      (await p.getByRole('heading', { name: 'Connect your accounts' }).count()) > 0,
+      'no Connect step in onboarding',
+    );
+    ok(
+      (await p.getByRole('region', { name: 'Google' }).count()) > 0,
+      'no Google card in onboarding',
+    );
+    await p.locator('button[type=submit]').click(); // past Connect
+    await p.waitForTimeout(500);
     await p.locator('button[type=submit]').click();
     await p.waitForTimeout(1500);
     ok(
@@ -522,10 +532,7 @@ const ha = http.createServer((req, res) => {
       const file = path.join(S, 'backup.enc');
       await bk.saveAs(file);
       const blob = fs.readFileSync(file, 'utf8');
-      ok(
-        /^v1\./.test(blob) && !blob.includes('Chicken wrap') && !blob.includes('Sam'),
-        'backup not encrypted',
-      );
+      ok(/^v1\./.test(blob) && !blob.includes('Chicken wrap'), 'backup not encrypted');
       await api('POST', '/api/food/log', {
         date: nyDate(),
         slot: 'snack',
@@ -564,6 +571,208 @@ const ha = http.createServer((req, res) => {
   await scan('Today (with data)');
 
   // 11 --------------------------------------------------------------- kill switch
+  // ----------------------------------------------------------- connect
+  await step(
+    'Connect page (real server, no Google or Microsoft app configured): shows setup steps, refuses to start',
+    async () => {
+      await goto('Connect');
+      ok(
+        (await p.getByRole('heading', { name: 'Connect', exact: true }).count()) > 0,
+        'no Connect page',
+      );
+      ok(
+        (await p.getByRole('region', { name: 'Google' }).count()) > 0 &&
+          (await p.getByRole('region', { name: 'Microsoft' }).count()) > 0,
+        'provider cards missing',
+      );
+      ok((await p.getByText('Not set up on this server yet').count()) === 2, 'setup hint missing');
+      await p.getByText('Not set up on this server yet').first().click();
+      ok(
+        (await p.getByText('/api/oauth/callback/google').count()) > 0,
+        'redirect address not shown',
+      );
+      ok(
+        (await p.getByText('Phone notifications').count()) > 0 &&
+          (await p.getByText('Home Assistant').count()) > 0,
+        'other connectors missing',
+      );
+      ok(
+        (await api('POST', '/api/oauth/start', { provider: 'google', features: ['mail'] }))
+          .status === 409,
+        'start should refuse',
+      );
+      return 'setup guidance and the redirect address are shown';
+    },
+  );
+  await scan('Connect (not configured)');
+  await step(
+    'Returning from a sign-in opens Connect with a clear message, and clears the address bar',
+    async () => {
+      await p.goto(BASE + '/?connect_error=denied');
+      await p.waitForTimeout(1500);
+      ok((await p.getByText(/Sign-in was cancelled/).count()) > 0, 'no cancelled message');
+      ok(new URL(p.url()).search === '', 'query not cleared');
+      await p.goto(BASE + '/?connected=google');
+      await p.waitForTimeout(1500);
+      ok((await p.getByText(/Google connected/).count()) > 0, 'no connected message');
+      await p.goto(BASE + '/?connect_error=bogus_code');
+      await p.waitForTimeout(1200);
+      ok(
+        (await p.getByRole('alert').filter({ hasText: 'Sign-in did not complete' }).count()) > 0,
+        'unknown error not handled',
+      );
+    },
+  );
+  await step(
+    'Connect page with accounts connected (API responses mocked): mail toggle, check now, import a calendar, reconnect, disconnect',
+    async () => {
+      const ctx2 = await browser.newContext({
+        viewport: { width: 390, height: 844 },
+        timezoneId: 'America/New_York',
+      });
+      const q = await ctx2.newPage();
+      q.on('dialog', (d) => d.accept());
+      const seen = [];
+      const state = { mail: true, imported: false };
+      await q.route('**/api/**', async (route) => {
+        const u = new URL(route.request().url());
+        const m = route.request().method();
+        seen.push(m + ' ' + u.pathname);
+        const j = (o, st = 200) =>
+          route.fulfill({ status: st, contentType: 'application/json', body: JSON.stringify(o) });
+        if (u.pathname === '/api/profile')
+          return j({
+            exists: true,
+            profile: {
+              completed: true,
+              name: 'Sam',
+              units: 'kg',
+              calorieTarget: null,
+              proteinTarget: null,
+              workoutsPerWeek: 3,
+              calendars: [],
+              shiftsChange: true,
+              lunchFor: 'none',
+              sleepTracker: 'phone',
+              sleepHours: 8,
+              wakeTime: '06:30',
+              homeSystems: [],
+              sessionMinutes: 60,
+              noTrainWithinBedtimeHours: 2,
+              noTrainOnShiftOverHours: 10,
+              trainTime: 'auto',
+              timezone: 'America/New_York',
+            },
+          });
+        if (u.pathname === '/api/connectors')
+          return j({
+            providers: [
+              { provider: 'google', label: 'Google', configured: true, redirectUri: 'x' },
+              {
+                provider: 'microsoft',
+                label: 'Microsoft',
+                configured: false,
+                redirectUri: 'https://life.example.com/api/oauth/callback/microsoft',
+              },
+            ],
+            server: { claude: false, usdaKey: false, backups: false, serviceToken: false },
+            calendarLinks: 0,
+            home: false,
+            notifications: false,
+          });
+        if (u.pathname === '/api/connections' && m === 'GET')
+          return j({
+            connections: [
+              {
+                id: '11111111-1111-1111-1111-111111111111',
+                provider: 'google',
+                account: 'sam@example.com',
+                features: ['mail', 'calendar'],
+                status: 'ok',
+                error: null,
+                mailEnabled: state.mail,
+                mailLastChecked: new Date(Date.now() - 600000).toISOString(),
+                mailError: null,
+              },
+              {
+                id: '22222222-2222-2222-2222-222222222222',
+                provider: 'google',
+                account: 'old@example.com',
+                features: ['mail'],
+                status: 'needs_reconnect',
+                error: 'Sign in again to keep this connected',
+                mailEnabled: true,
+                mailLastChecked: null,
+                mailError: null,
+              },
+            ],
+            mirror: null,
+          });
+        if (u.pathname.endsWith('/mail') && m === 'POST') {
+          state.mail = JSON.parse(route.request().postData()).enabled;
+          return j({ ok: true });
+        }
+        if (u.pathname.endsWith('/mail/check')) return j({ processed: 3, proposals: 2 });
+        if (u.pathname.endsWith('/calendars') && m === 'GET')
+          return j({
+            calendars: [
+              { id: 'primary', name: 'Sam', added: false },
+              { id: 'hospital', name: 'Hospital', added: state.imported },
+            ],
+          });
+        if (u.pathname.endsWith('/calendars') && m === 'POST') {
+          state.imported = true;
+          return j({ source: { id: 's' } }, 201);
+        }
+        if (u.pathname === '/api/oauth/start')
+          return j({ url: 'http://localhost:5173/?connected=google' });
+        if (m === 'DELETE') return j({ ok: true });
+        return j({}, 200);
+      });
+      await q.goto(BASE + '/?connected=google');
+      await q.waitForTimeout(2000);
+      ok((await q.getByText('sam@example.com').count()) > 0, 'account not listed');
+      ok((await q.getByText('Connected', { exact: true }).count()) > 0, 'no connected badge');
+      await q.getByLabel('Check this inbox automatically every 15 minutes').first().uncheck();
+      await q.waitForTimeout(500);
+      ok(
+        seen.includes('POST /api/connections/11111111-1111-1111-1111-111111111111/mail'),
+        'mail toggle not sent',
+      );
+      await q.getByRole('button', { name: 'Check now' }).first().click();
+      await q.waitForTimeout(600);
+      ok(
+        (await q.getByText('Read 3 new emails, 2 suggested events.').count()) > 0,
+        'check result not shown',
+      );
+      await q.getByRole('button', { name: 'Choose calendars to import' }).click();
+      await q.waitForTimeout(600);
+      await q.getByRole('button', { name: 'work' }).click();
+      await q.getByRole('button', { name: 'Import' }).nth(1).click();
+      await q.waitForTimeout(800);
+      ok((await q.getByText(/Imported Hospital/).count()) > 0, 'import message missing');
+      ok(
+        (await q.getByRole('button', { name: 'Sign in again' }).count()) > 0,
+        'reconnect button missing for the expired account',
+      );
+      ok(
+        (await q.getByLabel(/Also keep a "Life Dashboard" calendar in Google/).count()) > 0,
+        'mirror option missing',
+      );
+      await q.screenshot({ path: path.join(S, 'e2e-connect-connected.png'), fullPage: true });
+      await q.getByRole('button', { name: 'Disconnect' }).first().click();
+      await q.waitForTimeout(500);
+      ok(
+        seen.includes('DELETE /api/connections/11111111-1111-1111-1111-111111111111'),
+        'disconnect not sent',
+      );
+      const sw = await q.evaluate(() => document.documentElement.scrollWidth);
+      ok(sw <= 391, 'overflow ' + sw);
+      await ctx2.close();
+    },
+  );
+  await scan('Connect (connected)');
+
   await step(
     'Kill switch: needs REVOKE, then disconnects calendars, notifications and Home Assistant but keeps your data',
     async () => {
@@ -603,6 +812,7 @@ const ha = http.createServer((req, res) => {
       'Home',
       'Inbox',
       'Chat',
+      'Connect',
       'You',
     ]) {
       if (label !== 'Today') await goto(label);
