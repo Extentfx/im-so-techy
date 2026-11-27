@@ -29,4 +29,10 @@ export default tseslint.config(
     files: ['*.config.{js,ts}', 'apps/*/*.config.{js,ts}', 'scripts/**/*.mjs'],
     languageOptions: { globals: globals.node },
   },
+  {
+    // The end-to-end script is CommonJS, runs in Node, and its page.evaluate callbacks run in the browser.
+    files: ['e2e/**/*.cjs'],
+    languageOptions: { globals: { ...globals.node, ...globals.browser } },
+    rules: { '@typescript-eslint/no-require-imports': 'off' },
+  },
 );
